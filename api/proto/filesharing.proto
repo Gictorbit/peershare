@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = ".proto";
+
+service FileSharingService {
+  rpc SendFile(SendFileRequest) returns (SendFileResponse) {}
+  rpc DownloadFile(DownloadFileRequest) returns (DownloadFileResponse) {}
+}
+
+message SendFileRequest {
+  SDP offer = 1;
+  string file_checksum = 2;
+}
+message SendFileResponse {
+  string code = 1;
+}
+
+message DownloadFileRequest {
+  string code = 1;
+}
+
+message DownloadFileResponse {
+  SDP offer = 1;
+}
+
+message SDP {
+  uint32 type = 1;
+  string sdp = 2;
+}
