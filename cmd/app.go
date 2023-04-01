@@ -5,6 +5,7 @@ import (
 	"github.com/gictorbit/peershare/client"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"os"
@@ -94,7 +95,9 @@ func main() {
 						},
 						Action: func(context *cli.Context) error {
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
-							var opts []grpc.DialOption
+							opts := []grpc.DialOption{
+								grpc.WithTransportCredentials(insecure.NewCredentials()),
+							}
 							conn, err := grpc.Dial(serverAddr, opts...)
 							if err != nil {
 								return err
@@ -127,7 +130,9 @@ func main() {
 						},
 						Action: func(context *cli.Context) error {
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
-							var opts []grpc.DialOption
+							opts := []grpc.DialOption{
+								grpc.WithTransportCredentials(insecure.NewCredentials()),
+							}
 							conn, err := grpc.Dial(serverAddr, opts...)
 							if err != nil {
 								return err
