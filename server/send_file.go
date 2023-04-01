@@ -13,7 +13,7 @@ func (pss *PeerShareService) SendFile(ctx context.Context, req *pb.SendFileReque
 	randomUUID, err := uuid.NewRandom()
 	if err != nil {
 		pss.logger.Error("random uuid failed", zap.Error(err))
-		return nil, status.Error(codes.Internal, "internal error")
+		return nil, status.Error(codes.Internal, ErrInternalError.Error())
 	}
 	uniqueCode := randomUUID.String()[:10]
 	pss.mu.Lock()

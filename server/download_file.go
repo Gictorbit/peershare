@@ -10,7 +10,7 @@ import (
 func (pss *PeerShareService) DownloadFile(ctx context.Context, req *pb.DownloadFileRequest) (*pb.DownloadFileResponse, error) {
 	sdp, found := pss.sessions[req.Code]
 	if !found {
-		return nil, status.Error(codes.NotFound, "code not found")
+		return nil, status.Error(codes.NotFound, ErrCodeNotFound.Error())
 	}
 	defer func() {
 		pss.mu.Lock()

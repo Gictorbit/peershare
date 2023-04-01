@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	ErrInternalError = errors.New("")
+	ErrInternalError = errors.New("internal error")
+	ErrCodeNotFound  = errors.New("code not found")
 )
 
 type PeerShareService struct {
