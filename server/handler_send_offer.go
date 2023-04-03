@@ -1,31 +1,37 @@
 package server
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/base64"
 	pb "github.com/gictorbit/peershare/api/gen/proto"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"net"
 )
 
-func (pss *PeerShareService) SendFile(ctx context.Context, req *pb.SendFileRequest) (*pb.SendFileResponse, error) {
+func (pss *PeerShareServer) SendOfferHandler(req *pb.SendOfferRequest, conn net.Conn) error {
 	code, err := pss.GenerateCode()
 	if err != nil {
 		pss.logger.Error("code generator failed", zap.Error(err))
-		return nil, status.Error(codes.Internal, ErrInternalError.Error())
+		return pss.SendResponse(conn,
+			pb.MessageType_MESSAGE_TYPE_SEND_OFFER_RESPONSE,
+			pb.StatusCode_RESPONSE_CODE_ERROR, &pb.ResponseError{
+				Error: "internal error",
+			})
 	}
-
 	pss.mu.Lock()
 	defer pss.mu.Unlock()
-	pss.sessions[code] = req.Offer
-	return &pb.SendFileResponse{
-		Code: code,
-	}, nil
+	pss.sessions[code] = &PeerOffer{
+		Sdp:  req.Sdp,
+		Conn: conn,
+	}
+	return pss.SendResponse(conn,
+		pb.MessageType_MESSAGE_TYPE_SEND_OFFER_RESPONSE,
+		pb.StatusCode_RESPONSE_CODE_OK, &pb.SendOfferResponse{
+			Code: code,
+		})
 }
 
-func (pss *PeerShareService) GenerateCode() (string, error) {
+func (pss *PeerShareServer) GenerateCode() (string, error) {
 	// Generate a random 15-byte string
 	randomBytes := make([]byte, 15)
 	_, err := rand.Read(randomBytes)

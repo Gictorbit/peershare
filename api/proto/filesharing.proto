@@ -4,27 +4,52 @@ package proto;
 
 option go_package = ".proto";
 
-service FileSharingService {
-  rpc SendFile(SendFileRequest) returns (SendFileResponse) {}
-  rpc DownloadFile(DownloadFileRequest) returns (DownloadFileResponse) {}
+enum MessageType {
+  MESSAGE_TYPE_UNKNOWN = 0;
+
+  MESSAGE_TYPE_SEND_OFFER_REQUEST = 1;
+  MESSAGE_TYPE_SEND_OFFER_RESPONSE = 2;
+
+  MESSAGE_TYPE_GET_OFFER_REQUEST = 3;
+  MESSAGE_TYPE_GET_OFFER_RESPONSE = 4;
+
+  MESSAGE_TYPE_SEND_ANSWER_REQUEST = 5;
+  MESSAGE_TYPE_SEND_ANSWER_RESPONSE = 6;
+
 }
 
-message SendFileRequest {
-  SDP offer = 1;
+message SendOfferRequest {
+  SDP sdp = 1;
 }
-message SendFileResponse {
+message SendOfferResponse {
   string code = 1;
 }
 
-message DownloadFileRequest {
+message GetOfferRequest {
   string code = 1;
 }
 
-message DownloadFileResponse {
-  SDP offer = 1;
+message GetOfferResponse {
+  SDP sdp = 1;
 }
+message SendAnswerRequest {
+  string code = 1;
+  SDP sdp = 2;
+}
+
+message SendAnswerResponse {}
 
 message SDP {
   uint32 type = 1;
   string sdp = 2;
+}
+
+message ResponseError {
+  string error = 1;
+}
+
+enum StatusCode {
+  RESPONSE_CODE_NOT_FOUND = 0;
+  RESPONSE_CODE_OK = 1;
+  RESPONSE_CODE_ERROR = 2;
 }

@@ -20,16 +20,126 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type SendFileRequest struct {
+type MessageType int32
+
+const (
+	MessageType_MESSAGE_TYPE_UNKNOWN              MessageType = 0
+	MessageType_MESSAGE_TYPE_SEND_OFFER_REQUEST   MessageType = 1
+	MessageType_MESSAGE_TYPE_SEND_OFFER_RESPONSE  MessageType = 2
+	MessageType_MESSAGE_TYPE_GET_OFFER_REQUEST    MessageType = 3
+	MessageType_MESSAGE_TYPE_GET_OFFER_RESPONSE   MessageType = 4
+	MessageType_MESSAGE_TYPE_SEND_ANSWER_REQUEST  MessageType = 5
+	MessageType_MESSAGE_TYPE_SEND_ANSWER_RESPONSE MessageType = 6
+)
+
+// Enum value maps for MessageType.
+var (
+	MessageType_name = map[int32]string{
+		0: "MESSAGE_TYPE_UNKNOWN",
+		1: "MESSAGE_TYPE_SEND_OFFER_REQUEST",
+		2: "MESSAGE_TYPE_SEND_OFFER_RESPONSE",
+		3: "MESSAGE_TYPE_GET_OFFER_REQUEST",
+		4: "MESSAGE_TYPE_GET_OFFER_RESPONSE",
+		5: "MESSAGE_TYPE_SEND_ANSWER_REQUEST",
+		6: "MESSAGE_TYPE_SEND_ANSWER_RESPONSE",
+	}
+	MessageType_value = map[string]int32{
+		"MESSAGE_TYPE_UNKNOWN":              0,
+		"MESSAGE_TYPE_SEND_OFFER_REQUEST":   1,
+		"MESSAGE_TYPE_SEND_OFFER_RESPONSE":  2,
+		"MESSAGE_TYPE_GET_OFFER_REQUEST":    3,
+		"MESSAGE_TYPE_GET_OFFER_RESPONSE":   4,
+		"MESSAGE_TYPE_SEND_ANSWER_REQUEST":  5,
+		"MESSAGE_TYPE_SEND_ANSWER_RESPONSE": 6,
+	}
+)
+
+func (x MessageType) Enum() *MessageType {
+	p := new(MessageType)
+	*p = x
+	return p
+}
+
+func (x MessageType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MessageType) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_filesharing_proto_enumTypes[0].Descriptor()
+}
+
+func (MessageType) Type() protoreflect.EnumType {
+	return &file_proto_filesharing_proto_enumTypes[0]
+}
+
+func (x MessageType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MessageType.Descriptor instead.
+func (MessageType) EnumDescriptor() ([]byte, []int) {
+	return file_proto_filesharing_proto_rawDescGZIP(), []int{0}
+}
+
+type StatusCode int32
+
+const (
+	StatusCode_RESPONSE_CODE_NOT_FOUND StatusCode = 0
+	StatusCode_RESPONSE_CODE_OK        StatusCode = 1
+	StatusCode_RESPONSE_CODE_ERROR     StatusCode = 2
+)
+
+// Enum value maps for StatusCode.
+var (
+	StatusCode_name = map[int32]string{
+		0: "RESPONSE_CODE_NOT_FOUND",
+		1: "RESPONSE_CODE_OK",
+		2: "RESPONSE_CODE_ERROR",
+	}
+	StatusCode_value = map[string]int32{
+		"RESPONSE_CODE_NOT_FOUND": 0,
+		"RESPONSE_CODE_OK":        1,
+		"RESPONSE_CODE_ERROR":     2,
+	}
+)
+
+func (x StatusCode) Enum() *StatusCode {
+	p := new(StatusCode)
+	*p = x
+	return p
+}
+
+func (x StatusCode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (StatusCode) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_filesharing_proto_enumTypes[1].Descriptor()
+}
+
+func (StatusCode) Type() protoreflect.EnumType {
+	return &file_proto_filesharing_proto_enumTypes[1]
+}
+
+func (x StatusCode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use StatusCode.Descriptor instead.
+func (StatusCode) EnumDescriptor() ([]byte, []int) {
+	return file_proto_filesharing_proto_rawDescGZIP(), []int{1}
+}
+
+type SendOfferRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Offer *SDP `protobuf:"bytes,1,opt,name=offer,proto3" json:"offer,omitempty"`
+	Sdp *SDP `protobuf:"bytes,1,opt,name=sdp,proto3" json:"sdp,omitempty"`
 }
 
-func (x *SendFileRequest) Reset() {
-	*x = SendFileRequest{}
+func (x *SendOfferRequest) Reset() {
+	*x = SendOfferRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_filesharing_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -37,13 +147,13 @@ func (x *SendFileRequest) Reset() {
 	}
 }
 
-func (x *SendFileRequest) String() string {
+func (x *SendOfferRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SendFileRequest) ProtoMessage() {}
+func (*SendOfferRequest) ProtoMessage() {}
 
-func (x *SendFileRequest) ProtoReflect() protoreflect.Message {
+func (x *SendOfferRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_filesharing_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -55,19 +165,19 @@ func (x *SendFileRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SendFileRequest.ProtoReflect.Descriptor instead.
-func (*SendFileRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SendOfferRequest.ProtoReflect.Descriptor instead.
+func (*SendOfferRequest) Descriptor() ([]byte, []int) {
 	return file_proto_filesharing_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SendFileRequest) GetOffer() *SDP {
+func (x *SendOfferRequest) GetSdp() *SDP {
 	if x != nil {
-		return x.Offer
+		return x.Sdp
 	}
 	return nil
 }
 
-type SendFileResponse struct {
+type SendOfferResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -75,8 +185,8 @@ type SendFileResponse struct {
 	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 }
 
-func (x *SendFileResponse) Reset() {
-	*x = SendFileResponse{}
+func (x *SendOfferResponse) Reset() {
+	*x = SendOfferResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_filesharing_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -84,13 +194,13 @@ func (x *SendFileResponse) Reset() {
 	}
 }
 
-func (x *SendFileResponse) String() string {
+func (x *SendOfferResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SendFileResponse) ProtoMessage() {}
+func (*SendOfferResponse) ProtoMessage() {}
 
-func (x *SendFileResponse) ProtoReflect() protoreflect.Message {
+func (x *SendOfferResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_filesharing_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -102,19 +212,19 @@ func (x *SendFileResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SendFileResponse.ProtoReflect.Descriptor instead.
-func (*SendFileResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SendOfferResponse.ProtoReflect.Descriptor instead.
+func (*SendOfferResponse) Descriptor() ([]byte, []int) {
 	return file_proto_filesharing_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *SendFileResponse) GetCode() string {
+func (x *SendOfferResponse) GetCode() string {
 	if x != nil {
 		return x.Code
 	}
 	return ""
 }
 
-type DownloadFileRequest struct {
+type GetOfferRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -122,8 +232,8 @@ type DownloadFileRequest struct {
 	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 }
 
-func (x *DownloadFileRequest) Reset() {
-	*x = DownloadFileRequest{}
+func (x *GetOfferRequest) Reset() {
+	*x = GetOfferRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_filesharing_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -131,13 +241,13 @@ func (x *DownloadFileRequest) Reset() {
 	}
 }
 
-func (x *DownloadFileRequest) String() string {
+func (x *GetOfferRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DownloadFileRequest) ProtoMessage() {}
+func (*GetOfferRequest) ProtoMessage() {}
 
-func (x *DownloadFileRequest) ProtoReflect() protoreflect.Message {
+func (x *GetOfferRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_filesharing_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -149,28 +259,28 @@ func (x *DownloadFileRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DownloadFileRequest.ProtoReflect.Descriptor instead.
-func (*DownloadFileRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetOfferRequest.ProtoReflect.Descriptor instead.
+func (*GetOfferRequest) Descriptor() ([]byte, []int) {
 	return file_proto_filesharing_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *DownloadFileRequest) GetCode() string {
+func (x *GetOfferRequest) GetCode() string {
 	if x != nil {
 		return x.Code
 	}
 	return ""
 }
 
-type DownloadFileResponse struct {
+type GetOfferResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Offer *SDP `protobuf:"bytes,1,opt,name=offer,proto3" json:"offer,omitempty"`
+	Sdp *SDP `protobuf:"bytes,1,opt,name=sdp,proto3" json:"sdp,omitempty"`
 }
 
-func (x *DownloadFileResponse) Reset() {
-	*x = DownloadFileResponse{}
+func (x *GetOfferResponse) Reset() {
+	*x = GetOfferResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_filesharing_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -178,13 +288,13 @@ func (x *DownloadFileResponse) Reset() {
 	}
 }
 
-func (x *DownloadFileResponse) String() string {
+func (x *GetOfferResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DownloadFileResponse) ProtoMessage() {}
+func (*GetOfferResponse) ProtoMessage() {}
 
-func (x *DownloadFileResponse) ProtoReflect() protoreflect.Message {
+func (x *GetOfferResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_filesharing_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -196,16 +306,109 @@ func (x *DownloadFileResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DownloadFileResponse.ProtoReflect.Descriptor instead.
-func (*DownloadFileResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetOfferResponse.ProtoReflect.Descriptor instead.
+func (*GetOfferResponse) Descriptor() ([]byte, []int) {
 	return file_proto_filesharing_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *DownloadFileResponse) GetOffer() *SDP {
+func (x *GetOfferResponse) GetSdp() *SDP {
 	if x != nil {
-		return x.Offer
+		return x.Sdp
 	}
 	return nil
+}
+
+type SendAnswerRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Sdp  *SDP   `protobuf:"bytes,2,opt,name=sdp,proto3" json:"sdp,omitempty"`
+}
+
+func (x *SendAnswerRequest) Reset() {
+	*x = SendAnswerRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_filesharing_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SendAnswerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendAnswerRequest) ProtoMessage() {}
+
+func (x *SendAnswerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_filesharing_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendAnswerRequest.ProtoReflect.Descriptor instead.
+func (*SendAnswerRequest) Descriptor() ([]byte, []int) {
+	return file_proto_filesharing_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SendAnswerRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *SendAnswerRequest) GetSdp() *SDP {
+	if x != nil {
+		return x.Sdp
+	}
+	return nil
+}
+
+type SendAnswerResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *SendAnswerResponse) Reset() {
+	*x = SendAnswerResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_filesharing_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SendAnswerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendAnswerResponse) ProtoMessage() {}
+
+func (x *SendAnswerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_filesharing_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendAnswerResponse.ProtoReflect.Descriptor instead.
+func (*SendAnswerResponse) Descriptor() ([]byte, []int) {
+	return file_proto_filesharing_proto_rawDescGZIP(), []int{5}
 }
 
 type SDP struct {
@@ -220,7 +423,7 @@ type SDP struct {
 func (x *SDP) Reset() {
 	*x = SDP{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_filesharing_proto_msgTypes[4]
+		mi := &file_proto_filesharing_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -233,7 +436,7 @@ func (x *SDP) String() string {
 func (*SDP) ProtoMessage() {}
 
 func (x *SDP) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_filesharing_proto_msgTypes[4]
+	mi := &file_proto_filesharing_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -246,7 +449,7 @@ func (x *SDP) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SDP.ProtoReflect.Descriptor instead.
 func (*SDP) Descriptor() ([]byte, []int) {
-	return file_proto_filesharing_proto_rawDescGZIP(), []int{4}
+	return file_proto_filesharing_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SDP) GetType() uint32 {
@@ -263,43 +466,109 @@ func (x *SDP) GetSdp() string {
 	return ""
 }
 
+type ResponseError struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Error string `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
+}
+
+func (x *ResponseError) Reset() {
+	*x = ResponseError{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_filesharing_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ResponseError) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResponseError) ProtoMessage() {}
+
+func (x *ResponseError) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_filesharing_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResponseError.ProtoReflect.Descriptor instead.
+func (*ResponseError) Descriptor() ([]byte, []int) {
+	return file_proto_filesharing_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ResponseError) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 var File_proto_filesharing_proto protoreflect.FileDescriptor
 
 var file_proto_filesharing_proto_rawDesc = []byte{
 	0x0a, 0x17, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x68, 0x61, 0x72,
 	0x69, 0x6e, 0x67, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x05, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x22, 0x33, 0x0a, 0x0f, 0x53, 0x65, 0x6e, 0x64, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x12, 0x20, 0x0a, 0x05, 0x6f, 0x66, 0x66, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x53, 0x44, 0x50, 0x52, 0x05,
-	0x6f, 0x66, 0x66, 0x65, 0x72, 0x22, 0x26, 0x0a, 0x10, 0x53, 0x65, 0x6e, 0x64, 0x46, 0x69, 0x6c,
-	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64,
-	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x22, 0x29, 0x0a,
-	0x13, 0x44, 0x6f, 0x77, 0x6e, 0x6c, 0x6f, 0x61, 0x64, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x22, 0x38, 0x0a, 0x14, 0x44, 0x6f, 0x77, 0x6e,
-	0x6c, 0x6f, 0x61, 0x64, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x12, 0x20, 0x0a, 0x05, 0x6f, 0x66, 0x66, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x0a, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x53, 0x44, 0x50, 0x52, 0x05, 0x6f, 0x66, 0x66,
-	0x65, 0x72, 0x22, 0x2b, 0x0a, 0x03, 0x53, 0x44, 0x50, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70,
-	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x10, 0x0a,
-	0x03, 0x73, 0x64, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x73, 0x64, 0x70, 0x32,
-	0x9e, 0x01, 0x0a, 0x12, 0x46, 0x69, 0x6c, 0x65, 0x53, 0x68, 0x61, 0x72, 0x69, 0x6e, 0x67, 0x53,
-	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x3d, 0x0a, 0x08, 0x53, 0x65, 0x6e, 0x64, 0x46, 0x69,
-	0x6c, 0x65, 0x12, 0x16, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x53, 0x65, 0x6e, 0x64, 0x46,
-	0x69, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x2e, 0x53, 0x65, 0x6e, 0x64, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x49, 0x0a, 0x0c, 0x44, 0x6f, 0x77, 0x6e, 0x6c, 0x6f, 0x61,
-	0x64, 0x46, 0x69, 0x6c, 0x65, 0x12, 0x1a, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x6f,
-	0x77, 0x6e, 0x6c, 0x6f, 0x61, 0x64, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x1b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x6f, 0x77, 0x6e, 0x6c, 0x6f,
-	0x61, 0x64, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x42, 0x59, 0x0a, 0x09, 0x63, 0x6f, 0x6d, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x10, 0x46,
-	0x69, 0x6c, 0x65, 0x73, 0x68, 0x61, 0x72, 0x69, 0x6e, 0x67, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50,
-	0x01, 0x5a, 0x06, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0xa2, 0x02, 0x03, 0x50, 0x58, 0x58, 0xaa,
-	0x02, 0x05, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0xca, 0x02, 0x05, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0xe2,
-	0x02, 0x11, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64,
-	0x61, 0x74, 0x61, 0xea, 0x02, 0x05, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x22, 0x30, 0x0a, 0x10, 0x53, 0x65, 0x6e, 0x64, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x1c, 0x0a, 0x03, 0x73, 0x64, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x0a, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x53, 0x44, 0x50, 0x52, 0x03, 0x73,
+	0x64, 0x70, 0x22, 0x27, 0x0a, 0x11, 0x53, 0x65, 0x6e, 0x64, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x22, 0x25, 0x0a, 0x0f, 0x47,
+	0x65, 0x74, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12,
+	0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x63, 0x6f,
+	0x64, 0x65, 0x22, 0x30, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1c, 0x0a, 0x03, 0x73, 0x64, 0x70, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x53, 0x44, 0x50, 0x52,
+	0x03, 0x73, 0x64, 0x70, 0x22, 0x45, 0x0a, 0x11, 0x53, 0x65, 0x6e, 0x64, 0x41, 0x6e, 0x73, 0x77,
+	0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x1c, 0x0a,
+	0x03, 0x73, 0x64, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x2e, 0x53, 0x44, 0x50, 0x52, 0x03, 0x73, 0x64, 0x70, 0x22, 0x14, 0x0a, 0x12, 0x53,
+	0x65, 0x6e, 0x64, 0x41, 0x6e, 0x73, 0x77, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x2b, 0x0a, 0x03, 0x53, 0x44, 0x50, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x10, 0x0a, 0x03,
+	0x73, 0x64, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x73, 0x64, 0x70, 0x22, 0x25,
+	0x0a, 0x0d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x12,
+	0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x65, 0x72, 0x72, 0x6f, 0x72, 0x2a, 0x88, 0x02, 0x0a, 0x0b, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67,
+	0x65, 0x54, 0x79, 0x70, 0x65, 0x12, 0x18, 0x0a, 0x14, 0x4d, 0x45, 0x53, 0x53, 0x41, 0x47, 0x45,
+	0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12,
+	0x23, 0x0a, 0x1f, 0x4d, 0x45, 0x53, 0x53, 0x41, 0x47, 0x45, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f,
+	0x53, 0x45, 0x4e, 0x44, 0x5f, 0x4f, 0x46, 0x46, 0x45, 0x52, 0x5f, 0x52, 0x45, 0x51, 0x55, 0x45,
+	0x53, 0x54, 0x10, 0x01, 0x12, 0x24, 0x0a, 0x20, 0x4d, 0x45, 0x53, 0x53, 0x41, 0x47, 0x45, 0x5f,
+	0x54, 0x59, 0x50, 0x45, 0x5f, 0x53, 0x45, 0x4e, 0x44, 0x5f, 0x4f, 0x46, 0x46, 0x45, 0x52, 0x5f,
+	0x52, 0x45, 0x53, 0x50, 0x4f, 0x4e, 0x53, 0x45, 0x10, 0x02, 0x12, 0x22, 0x0a, 0x1e, 0x4d, 0x45,
+	0x53, 0x53, 0x41, 0x47, 0x45, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x47, 0x45, 0x54, 0x5f, 0x4f,
+	0x46, 0x46, 0x45, 0x52, 0x5f, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x10, 0x03, 0x12, 0x23,
+	0x0a, 0x1f, 0x4d, 0x45, 0x53, 0x53, 0x41, 0x47, 0x45, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x47,
+	0x45, 0x54, 0x5f, 0x4f, 0x46, 0x46, 0x45, 0x52, 0x5f, 0x52, 0x45, 0x53, 0x50, 0x4f, 0x4e, 0x53,
+	0x45, 0x10, 0x04, 0x12, 0x24, 0x0a, 0x20, 0x4d, 0x45, 0x53, 0x53, 0x41, 0x47, 0x45, 0x5f, 0x54,
+	0x59, 0x50, 0x45, 0x5f, 0x53, 0x45, 0x4e, 0x44, 0x5f, 0x41, 0x4e, 0x53, 0x57, 0x45, 0x52, 0x5f,
+	0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x10, 0x05, 0x12, 0x25, 0x0a, 0x21, 0x4d, 0x45, 0x53,
+	0x53, 0x41, 0x47, 0x45, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x53, 0x45, 0x4e, 0x44, 0x5f, 0x41,
+	0x4e, 0x53, 0x57, 0x45, 0x52, 0x5f, 0x52, 0x45, 0x53, 0x50, 0x4f, 0x4e, 0x53, 0x45, 0x10, 0x06,
+	0x2a, 0x58, 0x0a, 0x0a, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x1b,
+	0x0a, 0x17, 0x52, 0x45, 0x53, 0x50, 0x4f, 0x4e, 0x53, 0x45, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f,
+	0x4e, 0x4f, 0x54, 0x5f, 0x46, 0x4f, 0x55, 0x4e, 0x44, 0x10, 0x00, 0x12, 0x14, 0x0a, 0x10, 0x52,
+	0x45, 0x53, 0x50, 0x4f, 0x4e, 0x53, 0x45, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x4f, 0x4b, 0x10,
+	0x01, 0x12, 0x17, 0x0a, 0x13, 0x52, 0x45, 0x53, 0x50, 0x4f, 0x4e, 0x53, 0x45, 0x5f, 0x43, 0x4f,
+	0x44, 0x45, 0x5f, 0x45, 0x52, 0x52, 0x4f, 0x52, 0x10, 0x02, 0x42, 0x59, 0x0a, 0x09, 0x63, 0x6f,
+	0x6d, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x10, 0x46, 0x69, 0x6c, 0x65, 0x73, 0x68, 0x61,
+	0x72, 0x69, 0x6e, 0x67, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x06, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0xa2, 0x02, 0x03, 0x50, 0x58, 0x58, 0xaa, 0x02, 0x05, 0x50, 0x72, 0x6f, 0x74,
+	0x6f, 0xca, 0x02, 0x05, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0xe2, 0x02, 0x11, 0x50, 0x72, 0x6f, 0x74,
+	0x6f, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x05,
+	0x50, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -314,26 +583,29 @@ func file_proto_filesharing_proto_rawDescGZIP() []byte {
 	return file_proto_filesharing_proto_rawDescData
 }
 
-var file_proto_filesharing_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_filesharing_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_proto_filesharing_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_filesharing_proto_goTypes = []interface{}{
-	(*SendFileRequest)(nil),      // 0: proto.SendFileRequest
-	(*SendFileResponse)(nil),     // 1: proto.SendFileResponse
-	(*DownloadFileRequest)(nil),  // 2: proto.DownloadFileRequest
-	(*DownloadFileResponse)(nil), // 3: proto.DownloadFileResponse
-	(*SDP)(nil),                  // 4: proto.SDP
+	(MessageType)(0),           // 0: proto.MessageType
+	(StatusCode)(0),            // 1: proto.StatusCode
+	(*SendOfferRequest)(nil),   // 2: proto.SendOfferRequest
+	(*SendOfferResponse)(nil),  // 3: proto.SendOfferResponse
+	(*GetOfferRequest)(nil),    // 4: proto.GetOfferRequest
+	(*GetOfferResponse)(nil),   // 5: proto.GetOfferResponse
+	(*SendAnswerRequest)(nil),  // 6: proto.SendAnswerRequest
+	(*SendAnswerResponse)(nil), // 7: proto.SendAnswerResponse
+	(*SDP)(nil),                // 8: proto.SDP
+	(*ResponseError)(nil),      // 9: proto.ResponseError
 }
 var file_proto_filesharing_proto_depIdxs = []int32{
-	4, // 0: proto.SendFileRequest.offer:type_name -> proto.SDP
-	4, // 1: proto.DownloadFileResponse.offer:type_name -> proto.SDP
-	0, // 2: proto.FileSharingService.SendFile:input_type -> proto.SendFileRequest
-	2, // 3: proto.FileSharingService.DownloadFile:input_type -> proto.DownloadFileRequest
-	1, // 4: proto.FileSharingService.SendFile:output_type -> proto.SendFileResponse
-	3, // 5: proto.FileSharingService.DownloadFile:output_type -> proto.DownloadFileResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	8, // 0: proto.SendOfferRequest.sdp:type_name -> proto.SDP
+	8, // 1: proto.GetOfferResponse.sdp:type_name -> proto.SDP
+	8, // 2: proto.SendAnswerRequest.sdp:type_name -> proto.SDP
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_filesharing_proto_init() }
@@ -343,7 +615,7 @@ func file_proto_filesharing_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_proto_filesharing_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SendFileRequest); i {
+			switch v := v.(*SendOfferRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -355,7 +627,7 @@ func file_proto_filesharing_proto_init() {
 			}
 		}
 		file_proto_filesharing_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SendFileResponse); i {
+			switch v := v.(*SendOfferResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -367,7 +639,7 @@ func file_proto_filesharing_proto_init() {
 			}
 		}
 		file_proto_filesharing_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DownloadFileRequest); i {
+			switch v := v.(*GetOfferRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -379,7 +651,7 @@ func file_proto_filesharing_proto_init() {
 			}
 		}
 		file_proto_filesharing_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DownloadFileResponse); i {
+			switch v := v.(*GetOfferResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -391,7 +663,43 @@ func file_proto_filesharing_proto_init() {
 			}
 		}
 		file_proto_filesharing_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SendAnswerRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_filesharing_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SendAnswerResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_filesharing_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SDP); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_filesharing_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ResponseError); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -408,13 +716,14 @@ func file_proto_filesharing_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_filesharing_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   5,
+			NumEnums:      2,
+			NumMessages:   8,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   0,
 		},
 		GoTypes:           file_proto_filesharing_proto_goTypes,
 		DependencyIndexes: file_proto_filesharing_proto_depIdxs,
+		EnumInfos:         file_proto_filesharing_proto_enumTypes,
 		MessageInfos:      file_proto_filesharing_proto_msgTypes,
 	}.Build()
 	File_proto_filesharing_proto = out.File
