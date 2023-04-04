@@ -1,4 +1,4 @@
-package server
+package sigserver
 
 import (
 	"crypto/rand"

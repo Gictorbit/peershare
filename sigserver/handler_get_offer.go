@@ -1,4 +1,4 @@
-package server
+package sigserver
 
 import (
 	pb "github.com/gictorbit/peershare/api/gen/proto"

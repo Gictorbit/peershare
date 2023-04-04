@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/gictorbit/peershare/client"
+	"github.com/gictorbit/peershare/sigserver"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -67,13 +69,17 @@ func main() {
 				},
 				Action: func(cliCtx *cli.Context) error {
 					serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
-					server := RunSignalingGRPCServer(serverAddr)
-					stop := make(chan os.Signal, 1)
-					signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
-					<-stop
+					logger, err := zap.NewProduction()
+					if err != nil {
+						log.Fatalf("create new logger failed:%v\n", err)
+					}
+					server := sigserver.NewPeerShareServer(serverAddr, logger)
+					go server.Start()
 
-					log.Println("shutting down servers")
-					server.GracefulStop()
+					sigs := make(chan os.Signal, 1)
+					signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+					<-sigs
+					server.Stop()
 					return nil
 				},
 			},
