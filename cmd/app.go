@@ -101,7 +101,11 @@ func main() {
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
 							log.Println("server address is ", serverAddr)
 							peerClient := client.NewPeerClient(serverAddr)
+							if e := peerClient.Connect(); e != nil {
+								log.Fatal(e)
+							}
 							peerClient.SendFile(SendFilePath)
+							peerClient.Stop()
 							return nil
 						},
 					},
@@ -130,7 +134,12 @@ func main() {
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
 							log.Println("server address is ", serverAddr)
 							peerClient := client.NewPeerClient(serverAddr)
+							if e := peerClient.Connect(); e != nil {
+								log.Fatal(e)
+								return e
+							}
 							peerClient.ReceiveFile(SharedCode, ReceiveOutPath)
+							peerClient.Stop()
 							return nil
 						},
 					},
