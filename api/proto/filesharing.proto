@@ -15,7 +15,6 @@ enum MessageType {
 
   MESSAGE_TYPE_SEND_ANSWER_REQUEST = 5;
   MESSAGE_TYPE_SEND_ANSWER_RESPONSE = 6;
-
 }
 
 message SendOfferRequest {
@@ -23,6 +22,7 @@ message SendOfferRequest {
 }
 message SendOfferResponse {
   string code = 1;
+  StatusCode status_code = 2;
 }
 
 message GetOfferRequest {
@@ -31,21 +31,20 @@ message GetOfferRequest {
 
 message GetOfferResponse {
   SDP sdp = 1;
+  StatusCode status_code = 2;
 }
 message SendAnswerRequest {
   string code = 1;
   SDP sdp = 2;
 }
 
-message SendAnswerResponse {}
+message SendAnswerResponse {
+  StatusCode status_code = 1;
+}
 
 message SDP {
   uint32 type = 1;
   string sdp = 2;
-}
-
-message ResponseError {
-  string error = 1;
 }
 
 enum StatusCode {

@@ -6,8 +6,6 @@ import (
 	"github.com/gictorbit/peershare/sigserver"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"os"
@@ -101,14 +99,8 @@ func main() {
 						},
 						Action: func(context *cli.Context) error {
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
-							opts := []grpc.DialOption{
-								grpc.WithTransportCredentials(insecure.NewCredentials()),
-							}
-							conn, err := grpc.Dial(serverAddr, opts...)
-							if err != nil {
-								return err
-							}
-							peerClient := client.NewPeerClient(conn)
+							log.Println("server address is ", serverAddr)
+							peerClient := client.NewPeerClient(serverAddr)
 							peerClient.SendFile(SendFilePath)
 							return nil
 						},
@@ -136,14 +128,8 @@ func main() {
 						},
 						Action: func(context *cli.Context) error {
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
-							opts := []grpc.DialOption{
-								grpc.WithTransportCredentials(insecure.NewCredentials()),
-							}
-							conn, err := grpc.Dial(serverAddr, opts...)
-							if err != nil {
-								return err
-							}
-							peerClient := client.NewPeerClient(conn)
+							log.Println("server address is ", serverAddr)
+							peerClient := client.NewPeerClient(serverAddr)
 							peerClient.ReceiveFile(SharedCode, ReceiveOutPath)
 							return nil
 						},

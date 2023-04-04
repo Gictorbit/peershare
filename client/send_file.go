@@ -1,10 +1,11 @@
 package client
 
 import (
-	"context"
 	"fmt"
 	pb "github.com/gictorbit/peershare/api/gen/proto"
+	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
+	"log"
 	"os"
 	"time"
 )
@@ -81,17 +82,27 @@ func (pc *PeerClient) SendFile(filePath string) {
 	if err = peerConnection.SetLocalDescription(offer); err != nil {
 		panic(err)
 	}
-
-	resp, err := pc.client.SendFile(context.Background(), &pb.SendFileRequest{
-		Offer: &pb.SDP{
+	err = pc.SendRequest(pb.MessageType_MESSAGE_TYPE_SEND_OFFER_REQUEST, &pb.SendOfferRequest{
+		Sdp: &pb.SDP{
 			Sdp:  offer.SDP,
 			Type: uint32(offer.Type),
 		},
 	})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	fmt.Println("share code: ", resp.Code)
+	resp, err := utils.ReadMessageFromConn(pc.conn, &pb.SendOfferResponse{})
+	if err != nil || resp.Message.StatusCode != pb.StatusCode_RESPONSE_CODE_OK {
+		log.Fatalf("response code not ok %v", err)
+		return
+	}
+	fmt.Println("share code: ", resp.Message.Code)
+
+	_, err = utils.ReadMessageFromConn(pc.conn, &pb.SendAnswerRequest{})
+	if err != nil {
+		log.Fatalf("send answer error %v", err)
+		return
+	}
 
 	// Block forever
 	select {}

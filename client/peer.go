@@ -1,12 +1,17 @@
 package client
 
 import (
-	pb "github.com/gictorbit/peershare/api/gen/proto"
-	"google.golang.org/grpc"
+	"fmt"
+	"github.com/gictorbit/peershare/utils"
+	"log"
+	"net"
+	"sync"
 )
 
 type PeerClient struct {
-	client pb.FileSharingServiceClient
+	listenAddr string
+	conn       net.Conn
+	wg         sync.WaitGroup
 }
 
 type PeerShareClient interface {
@@ -14,8 +19,24 @@ type PeerShareClient interface {
 	SendFile(filePath string)
 }
 
-func NewPeerClient(conn *grpc.ClientConn) *PeerClient {
+func NewPeerClient(listenAddr string) *PeerClient {
 	return &PeerClient{
-		client: pb.NewFileSharingServiceClient(conn),
+		listenAddr: listenAddr,
+		wg:         sync.WaitGroup{},
 	}
+}
+
+func (pc *PeerClient) Connect() error {
+	conn, err := net.Dial(utils.ServerSocketType, pc.listenAddr)
+	if err != nil {
+		return fmt.Errorf("failed to dial server: %v\n", err.Error())
+	}
+	pc.conn = conn
+	return nil
+}
+
+func (pc *PeerClient) Stop() {
+	pc.wg.Wait()
+	pc.conn.Close()
+	log.Println("stop client...")
 }
