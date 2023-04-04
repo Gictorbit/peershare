@@ -19,7 +19,6 @@ var (
 type MessageBody[T proto.Message] struct {
 	MessageType pb.MessageType
 	Payload     []byte
-	StatusCode  pb.StatusCode
 	Message     T
 }
 
@@ -32,8 +31,7 @@ func ReadMessageFromConn[T proto.Message](conn net.Conn, message T) (*MessageBod
 	data := buf[:n]
 	packet := &MessageBody[T]{
 		MessageType: pb.MessageType(data[0]),
-		StatusCode:  pb.StatusCode(data[1]),
-		Payload:     data[2:],
+		Payload:     data[1:],
 	}
 	if e := proto.Unmarshal(packet.Payload, message); e != nil {
 		return nil, e

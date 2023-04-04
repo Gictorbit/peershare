@@ -14,8 +14,8 @@ func (pss *PeerShareServer) SendOfferHandler(req *pb.SendOfferRequest, conn net.
 		pss.logger.Error("code generator failed", zap.Error(err))
 		return pss.SendResponse(conn,
 			pb.MessageType_MESSAGE_TYPE_SEND_OFFER_RESPONSE,
-			pb.StatusCode_RESPONSE_CODE_ERROR, &pb.ResponseError{
-				Error: "internal error",
+			&pb.SendOfferResponse{
+				StatusCode: pb.StatusCode_RESPONSE_CODE_ERROR,
 			})
 	}
 	pss.mu.Lock()
@@ -26,8 +26,9 @@ func (pss *PeerShareServer) SendOfferHandler(req *pb.SendOfferRequest, conn net.
 	}
 	return pss.SendResponse(conn,
 		pb.MessageType_MESSAGE_TYPE_SEND_OFFER_RESPONSE,
-		pb.StatusCode_RESPONSE_CODE_OK, &pb.SendOfferResponse{
-			Code: code,
+		&pb.SendOfferResponse{
+			Code:       code,
+			StatusCode: pb.StatusCode_RESPONSE_CODE_OK,
 		})
 }
 

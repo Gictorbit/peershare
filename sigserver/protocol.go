@@ -10,7 +10,6 @@ import (
 
 type PacketBody struct {
 	MessageType pb.MessageType
-	StatusCode  pb.StatusCode
 	Payload     []byte
 }
 
@@ -24,19 +23,16 @@ func (pss *PeerShareServer) ReadPacket(conn net.Conn) (*PacketBody, error) {
 		return nil, io.EOF
 	}
 	messageType := pb.MessageType(buf[0])
-	statusCode := pb.StatusCode(buf[1])
-	payload := buf[2:n]
+	payload := buf[1:n]
 	return &PacketBody{
 		MessageType: messageType,
 		Payload:     payload,
-		StatusCode:  statusCode,
 	}, nil
 }
 
 func (pss *PeerShareServer) SendResponsePacket(conn net.Conn, packet *PacketBody) error {
 	buf := make([]byte, 0)
 	buf = append(buf, byte(packet.MessageType))
-	buf = append(buf, byte(packet.StatusCode))
 	buf = append(buf, packet.Payload...)
 	if len(buf) > utils.PacketMaxByteLength {
 		return utils.ErrInvalidPacketSize
@@ -47,7 +43,7 @@ func (pss *PeerShareServer) SendResponsePacket(conn net.Conn, packet *PacketBody
 	return nil
 }
 
-func (pss *PeerShareServer) SendResponse(conn net.Conn, msgType pb.MessageType, status pb.StatusCode, msg proto.Message) error {
+func (pss *PeerShareServer) SendResponse(conn net.Conn, msgType pb.MessageType, msg proto.Message) error {
 	respBytes, err := proto.Marshal(msg)
 	if err != nil {
 		return err
@@ -55,7 +51,6 @@ func (pss *PeerShareServer) SendResponse(conn net.Conn, msgType pb.MessageType, 
 	packet := &PacketBody{
 		MessageType: msgType,
 		Payload:     respBytes,
-		StatusCode:  status,
 	}
 	if e := pss.SendResponsePacket(conn, packet); e != nil {
 		return e

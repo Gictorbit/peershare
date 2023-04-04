@@ -12,14 +12,12 @@ func (pss *PeerShareServer) SendAnswerHandler(req *pb.SendAnswerRequest, conn ne
 		pss.logger.Error("code not found", zap.String("code", req.GetCode()))
 		return pss.SendResponse(conn,
 			pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_RESPONSE,
-			pb.StatusCode_RESPONSE_CODE_NOT_FOUND,
-			&pb.ResponseError{
-				Error: "code not found",
+			&pb.SendAnswerResponse{
+				StatusCode: pb.StatusCode_RESPONSE_CODE_NOT_FOUND,
 			})
 	}
 	err := pss.SendResponse(peerSession.Conn,
-		pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_REQUEST,
-		pb.StatusCode_RESPONSE_CODE_OK, req)
+		pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_REQUEST, req)
 
 	if err != nil {
 		pss.logger.Error("failed to send answer to first peer",
@@ -28,13 +26,13 @@ func (pss *PeerShareServer) SendAnswerHandler(req *pb.SendAnswerRequest, conn ne
 		)
 		return pss.SendResponse(conn,
 			pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_RESPONSE,
-			pb.StatusCode_RESPONSE_CODE_ERROR,
-			&pb.ResponseError{
-				Error: "internal error",
+			&pb.SendAnswerResponse{
+				StatusCode: pb.StatusCode_RESPONSE_CODE_ERROR,
 			})
 	}
 	return pss.SendResponse(conn,
 		pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_RESPONSE,
-		pb.StatusCode_RESPONSE_CODE_OK,
-		&pb.SendAnswerResponse{})
+		&pb.SendAnswerResponse{
+			StatusCode: pb.StatusCode_RESPONSE_CODE_OK,
+		})
 }
