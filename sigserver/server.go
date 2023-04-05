@@ -1,18 +1,12 @@
 package sigserver
 
 import (
-	"errors"
 	pb "github.com/gictorbit/peershare/api/gen/proto"
 	"github.com/gictorbit/peershare/utils"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 	"net"
 	"sync"
-)
-
-var (
-	ErrInternalError = errors.New("internal error")
-	ErrCodeNotFound  = errors.New("code not found")
 )
 
 type Empty struct{}
@@ -31,6 +25,16 @@ type PeerOffer struct {
 	Sdp  *pb.SDP
 	Conn net.Conn
 }
+
+type PeerShareService interface {
+	GetOfferHandler(req *pb.GetOfferRequest, conn net.Conn) error
+	SendAnswerHandler(req *pb.SendAnswerRequest, conn net.Conn) error
+	SendOfferHandler(req *pb.SendOfferRequest, conn net.Conn) error
+}
+
+var (
+	_ PeerShareService = &PeerShareServer{}
+)
 
 func NewPeerShareServer(listenAddr string, logger *zap.Logger) *PeerShareServer {
 	return &PeerShareServer{
