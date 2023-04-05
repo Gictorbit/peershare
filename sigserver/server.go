@@ -89,10 +89,9 @@ func (pss *PeerShareServer) HandleConnection(conn net.Conn) {
 	for {
 		packet, err := pss.ReadPacket(conn)
 		if err != nil {
-			if errors.Is(err, io.EOF) {
-				return
+			if !errors.Is(err, io.EOF) {
+				pss.logger.Error("read packet error", zap.Error(err))
 			}
-			pss.logger.Error("read packet error", zap.Error(err))
 			return
 		}
 		switch packet.MessageType {
