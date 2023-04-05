@@ -96,7 +96,7 @@ func (pss *PeerShareServer) HandleConnection(conn net.Conn) {
 			return
 		}
 		switch packet.MessageType {
-		case api.MessagetypeMessageTypeSendOfferRequest:
+		case api.MessageTypeSendOfferRequest:
 			req := &api.SendOfferRequest{}
 			if e := json.Unmarshal(packet.Payload, req); e != nil {
 				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
@@ -106,7 +106,7 @@ func (pss *PeerShareServer) HandleConnection(conn net.Conn) {
 				pss.logger.Error("handle upload file failed", zap.Error(err))
 				continue
 			}
-		case api.MessagetypeMessageTypeGetOfferRequest:
+		case api.MessageTypeGetOfferRequest:
 			req := &api.GetOfferRequest{}
 			if e := json.Unmarshal(packet.Payload, req); e != nil {
 				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
@@ -116,7 +116,7 @@ func (pss *PeerShareServer) HandleConnection(conn net.Conn) {
 				pss.logger.Error("handle upload file failed", zap.Error(err))
 				continue
 			}
-		case api.MessagetypeMessageTypeSendAnswerRequest:
+		case api.MessageTypeSendAnswerRequest:
 			req := &api.SendAnswerRequest{}
 			if e := json.Unmarshal(packet.Payload, req); e != nil {
 				pss.logger.Error("unmarshal upload request failed", zap.Error(err))

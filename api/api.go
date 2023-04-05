@@ -7,20 +7,20 @@ import (
 type MessageType int32
 
 const (
-	MessagetypeMessageTypeSendOfferRequest   MessageType = 1
-	MessagetypeMessageTypeSendOfferResponse  MessageType = 2
-	MessagetypeMessageTypeGetOfferRequest    MessageType = 3
-	MessagetypeMessageTypeGetOfferResponse   MessageType = 4
-	MessagetypeMessageTypeSendAnswerRequest  MessageType = 5
-	MessagetypeMessageTypeSendAnswerResponse MessageType = 6
+	MessageTypeSendOfferRequest   MessageType = 1
+	MessageTypeSendOfferResponse  MessageType = 2
+	MessageTypeGetOfferRequest    MessageType = 3
+	MessageTypeGetOfferResponse   MessageType = 4
+	MessageTypeSendAnswerRequest  MessageType = 5
+	MessageTypeSendAnswerResponse MessageType = 6
 )
 
 type StatusCode int32
 
 const (
-	StatuscodeResponseCodeNotFound StatusCode = 0
-	StatuscodeResponseCodeOk       StatusCode = 1
-	StatuscodeResponseCodeError    StatusCode = 2
+	ResponseCodeNotFound StatusCode = 0
+	ResponseCodeOk       StatusCode = 1
+	ResponseCodeError    StatusCode = 2
 )
 
 type SendOfferRequest struct {

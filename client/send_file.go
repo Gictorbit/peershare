@@ -80,12 +80,12 @@ func (pc *PeerClient) SendFile(filePath string) {
 	if err = peerConnection.SetLocalDescription(offer); err != nil {
 		panic(err)
 	}
-	err = pc.SendRequest(api.MessagetypeMessageTypeSendOfferRequest, &api.SendOfferRequest{Sdp: offer})
+	err = pc.SendRequest(api.MessageTypeSendOfferRequest, &api.SendOfferRequest{Sdp: offer})
 	if err != nil {
 		log.Fatal(err)
 	}
 	resp, err := utils.ReadMessageFromConn(pc.conn, &api.SendOfferResponse{})
-	if err != nil || resp.Message.StatusCode != api.StatuscodeResponseCodeOk {
+	if err != nil || resp.Message.StatusCode != api.ResponseCodeOk {
 		log.Fatalf("response code not ok %v", err)
 		return
 	}

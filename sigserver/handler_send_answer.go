@@ -11,13 +11,13 @@ func (pss *PeerShareServer) SendAnswerHandler(req *api.SendAnswerRequest, conn n
 	if !found {
 		pss.logger.Error("code not found", zap.String("code", req.Code))
 		return pss.SendResponse(conn,
-			api.MessagetypeMessageTypeSendAnswerResponse,
+			api.MessageTypeSendAnswerResponse,
 			&api.SendAnswerResponse{
-				StatusCode: api.StatuscodeResponseCodeNotFound,
+				StatusCode: api.ResponseCodeNotFound,
 			})
 	}
 	err := pss.SendResponse(peerSession.Conn,
-		api.MessagetypeMessageTypeSendAnswerRequest, req)
+		api.MessageTypeSendAnswerRequest, req)
 
 	if err != nil {
 		pss.logger.Error("failed to send answer to first peer",
@@ -25,14 +25,14 @@ func (pss *PeerShareServer) SendAnswerHandler(req *api.SendAnswerRequest, conn n
 			zap.String("code", req.Code),
 		)
 		return pss.SendResponse(conn,
-			api.MessagetypeMessageTypeSendAnswerResponse,
+			api.MessageTypeSendAnswerResponse,
 			&api.SendAnswerResponse{
-				StatusCode: api.StatuscodeResponseCodeError,
+				StatusCode: api.ResponseCodeError,
 			})
 	}
 	return pss.SendResponse(conn,
-		api.MessagetypeMessageTypeSendAnswerResponse,
+		api.MessageTypeSendAnswerResponse,
 		&api.SendAnswerResponse{
-			StatusCode: api.StatuscodeResponseCodeOk,
+			StatusCode: api.ResponseCodeOk,
 		})
 }

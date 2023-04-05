@@ -68,7 +68,7 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 		})
 	})
 
-	err = pc.SendRequest(api.MessagetypeMessageTypeGetOfferRequest, &api.GetOfferRequest{Code: code})
+	err = pc.SendRequest(api.MessageTypeGetOfferRequest, &api.GetOfferRequest{Code: code})
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -93,7 +93,7 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 	if err != nil {
 		panic(err)
 	}
-	err = pc.SendRequest(api.MessagetypeMessageTypeSendAnswerRequest, &api.SendAnswerRequest{
+	err = pc.SendRequest(api.MessageTypeSendAnswerRequest, &api.SendAnswerRequest{
 		Code: code,
 		Sdp:  answer,
 	})
@@ -102,7 +102,7 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 		return
 	}
 	resp, err := utils.ReadMessageFromConn(pc.conn, &api.SendAnswerResponse{})
-	if err != nil || resp.Message.StatusCode != api.StatuscodeResponseCodeOk {
+	if err != nil || resp.Message.StatusCode != api.ResponseCodeOk {
 		log.Fatalf("send answer error:%v", err)
 		return
 	}

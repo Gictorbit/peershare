@@ -11,15 +11,15 @@ func (pss *PeerShareServer) GetOfferHandler(req *api.GetOfferRequest, conn net.C
 	if !found {
 		pss.logger.Error("code not found", zap.String("code", req.Code))
 		return pss.SendResponse(conn,
-			api.MessagetypeMessageTypeGetOfferResponse,
+			api.MessageTypeGetOfferResponse,
 			&api.GetOfferResponse{
-				StatusCode: api.StatuscodeResponseCodeError,
+				StatusCode: api.ResponseCodeError,
 			})
 	}
 	return pss.SendResponse(conn,
-		api.MessagetypeMessageTypeGetOfferResponse,
+		api.MessageTypeGetOfferResponse,
 		&api.GetOfferResponse{
 			Sdp:        peerOffer.Sdp,
-			StatusCode: api.StatuscodeResponseCodeOk,
+			StatusCode: api.ResponseCodeOk,
 		})
 }

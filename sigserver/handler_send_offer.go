@@ -13,9 +13,9 @@ func (pss *PeerShareServer) SendOfferHandler(req *api.SendOfferRequest, conn net
 	if err != nil {
 		pss.logger.Error("code generator failed", zap.Error(err))
 		return pss.SendResponse(conn,
-			api.MessagetypeMessageTypeSendOfferResponse,
+			api.MessageTypeSendOfferResponse,
 			&api.SendOfferResponse{
-				StatusCode: api.StatuscodeResponseCodeError,
+				StatusCode: api.ResponseCodeError,
 			})
 	}
 	pss.mu.Lock()
@@ -25,10 +25,10 @@ func (pss *PeerShareServer) SendOfferHandler(req *api.SendOfferRequest, conn net
 		Conn: conn,
 	}
 	return pss.SendResponse(conn,
-		api.MessagetypeMessageTypeSendOfferResponse,
+		api.MessageTypeSendOfferResponse,
 		&api.SendOfferResponse{
 			Code:       code,
-			StatusCode: api.StatuscodeResponseCodeOk,
+			StatusCode: api.ResponseCodeOk,
 		})
 }
 
