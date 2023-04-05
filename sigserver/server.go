@@ -99,31 +99,31 @@ func (pss *PeerShareServer) HandleConnection(conn net.Conn) {
 			req := &pb.SendOfferRequest{}
 			if e := proto.Unmarshal(packet.Payload, req); e != nil {
 				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
-				return
+				continue
 			}
 			if e := pss.SendOfferHandler(req, conn); e != nil {
 				pss.logger.Error("handle upload file failed", zap.Error(err))
-				return
+				continue
 			}
 		case pb.MessageType_MESSAGE_TYPE_GET_OFFER_REQUEST:
 			req := &pb.GetOfferRequest{}
 			if e := proto.Unmarshal(packet.Payload, req); e != nil {
 				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
-				return
+				continue
 			}
 			if e := pss.GetOfferHandler(req, conn); e != nil {
 				pss.logger.Error("handle upload file failed", zap.Error(err))
-				return
+				continue
 			}
 		case pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_REQUEST:
 			req := &pb.SendAnswerRequest{}
 			if e := proto.Unmarshal(packet.Payload, req); e != nil {
 				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
-				return
+				continue
 			}
 			if e := pss.SendAnswerHandler(req, conn); e != nil {
 				pss.logger.Error("handle upload file failed", zap.Error(err))
-				return
+				continue
 			}
 		}
 	}

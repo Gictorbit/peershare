@@ -6,7 +6,6 @@ import (
 	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
 	"log"
-	"os"
 	"time"
 )
 
@@ -46,7 +45,6 @@ func (pc *PeerClient) SendFile(filePath string) {
 			// Use webrtc.PeerConnectionStateDisconnected if you are interested in detecting faster timeout.
 			// Note that the PeerConnection may come back from PeerConnectionStateDisconnected.
 			fmt.Println("Peer Connection has gone to failed exiting")
-			os.Exit(0)
 		}
 	})
 
@@ -109,6 +107,7 @@ func (pc *PeerClient) SendFile(filePath string) {
 	}); sdpErr != nil {
 		panic(sdpErr)
 	}
+	log.Println("got answer")
 	// Block forever
 	select {}
 }
