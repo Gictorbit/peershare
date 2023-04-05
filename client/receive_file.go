@@ -109,6 +109,11 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 		log.Fatal(err)
 		return
 	}
+	resp, err := utils.ReadMessageFromConn(pc.conn, &pb.SendAnswerResponse{})
+	if err != nil || resp.Message.StatusCode != pb.StatusCode_RESPONSE_CODE_OK {
+		log.Fatalf("send answer error:%v", err)
+		return
+	}
 	log.Println("sent answer")
 	select {}
 }
