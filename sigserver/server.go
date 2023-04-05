@@ -1,10 +1,12 @@
 package sigserver
 
 import (
+	"errors"
 	pb "github.com/gictorbit/peershare/api/gen/proto"
 	"github.com/gictorbit/peershare/utils"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
+	"io"
 	"net"
 	"sync"
 )
@@ -87,6 +89,9 @@ func (pss *PeerShareServer) HandleConnection(conn net.Conn) {
 	for {
 		packet, err := pss.ReadPacket(conn)
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return
+			}
 			pss.logger.Error("read packet error", zap.Error(err))
 			return
 		}

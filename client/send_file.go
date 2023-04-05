@@ -98,12 +98,17 @@ func (pc *PeerClient) SendFile(filePath string) {
 	}
 	fmt.Println("share code: ", resp.Message.Code)
 
-	_, err = utils.ReadMessageFromConn(pc.conn, &pb.SendAnswerRequest{})
+	answer, err := utils.ReadMessageFromConn(pc.conn, &pb.SendAnswerRequest{})
 	if err != nil {
 		log.Fatalf("send answer error %v", err)
 		return
 	}
-
+	if sdpErr := peerConnection.SetRemoteDescription(webrtc.SessionDescription{
+		SDP:  answer.Message.Sdp.Sdp,
+		Type: webrtc.SDPType(answer.Message.Sdp.Type),
+	}); sdpErr != nil {
+		panic(sdpErr)
+	}
 	// Block forever
 	select {}
 }
