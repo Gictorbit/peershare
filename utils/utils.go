@@ -1,9 +1,9 @@
 package utils
 
 import (
+	"encoding/json"
 	"errors"
-	pb "github.com/gictorbit/peershare/api/gen/proto"
-	"google.golang.org/protobuf/proto"
+	api "github.com/gictorbit/peershare/api"
 	"net"
 )
 
@@ -16,13 +16,13 @@ var (
 	ErrInvalidPacketSize = errors.New("invalid packet size")
 )
 
-type MessageBody[T proto.Message] struct {
-	MessageType pb.MessageType
+type MessageBody[T any] struct {
+	MessageType api.MessageType
 	Payload     []byte
 	Message     T
 }
 
-func ReadMessageFromConn[T proto.Message](conn net.Conn, message T) (*MessageBody[T], error) {
+func ReadMessageFromConn[T any](conn net.Conn, message T) (*MessageBody[T], error) {
 	buf := make([]byte, PacketMaxByteLength)
 	n, err := conn.Read(buf)
 	if err != nil {
@@ -30,13 +30,12 @@ func ReadMessageFromConn[T proto.Message](conn net.Conn, message T) (*MessageBod
 	}
 	data := buf[:n]
 	packet := &MessageBody[T]{
-		MessageType: pb.MessageType(data[0]),
+		MessageType: api.MessageType(data[0]),
 		Payload:     data[1:],
 	}
-	if e := proto.Unmarshal(packet.Payload, message); e != nil {
+	if e := json.Unmarshal(packet.Payload, message); e != nil {
 		return nil, e
 	}
 	packet.Message = message
-
 	return packet, nil
 }

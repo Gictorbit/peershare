@@ -1,38 +1,38 @@
 package sigserver
 
 import (
-	pb "github.com/gictorbit/peershare/api/gen/proto"
+	"github.com/gictorbit/peershare/api"
 	"go.uber.org/zap"
 	"net"
 )
 
-func (pss *PeerShareServer) SendAnswerHandler(req *pb.SendAnswerRequest, conn net.Conn) error {
-	peerSession, found := pss.sessions[req.GetCode()]
+func (pss *PeerShareServer) SendAnswerHandler(req *api.SendAnswerRequest, conn net.Conn) error {
+	peerSession, found := pss.sessions[req.Code]
 	if !found {
-		pss.logger.Error("code not found", zap.String("code", req.GetCode()))
+		pss.logger.Error("code not found", zap.String("code", req.Code))
 		return pss.SendResponse(conn,
-			pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_RESPONSE,
-			&pb.SendAnswerResponse{
-				StatusCode: pb.StatusCode_RESPONSE_CODE_NOT_FOUND,
+			api.MessagetypeMessageTypeSendAnswerResponse,
+			&api.SendAnswerResponse{
+				StatusCode: api.StatuscodeResponseCodeNotFound,
 			})
 	}
 	err := pss.SendResponse(peerSession.Conn,
-		pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_REQUEST, req)
+		api.MessagetypeMessageTypeSendAnswerRequest, req)
 
 	if err != nil {
 		pss.logger.Error("failed to send answer to first peer",
 			zap.Error(err),
-			zap.String("code", req.GetCode()),
+			zap.String("code", req.Code),
 		)
 		return pss.SendResponse(conn,
-			pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_RESPONSE,
-			&pb.SendAnswerResponse{
-				StatusCode: pb.StatusCode_RESPONSE_CODE_ERROR,
+			api.MessagetypeMessageTypeSendAnswerResponse,
+			&api.SendAnswerResponse{
+				StatusCode: api.StatuscodeResponseCodeError,
 			})
 	}
 	return pss.SendResponse(conn,
-		pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_RESPONSE,
-		&pb.SendAnswerResponse{
-			StatusCode: pb.StatusCode_RESPONSE_CODE_OK,
+		api.MessagetypeMessageTypeSendAnswerResponse,
+		&api.SendAnswerResponse{
+			StatusCode: api.StatuscodeResponseCodeOk,
 		})
 }

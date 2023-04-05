@@ -1,15 +1,15 @@
 package sigserver
 
 import (
-	pb "github.com/gictorbit/peershare/api/gen/proto"
+	"encoding/json"
+	"github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/utils"
-	"google.golang.org/protobuf/proto"
 	"io"
 	"net"
 )
 
 type PacketBody struct {
-	MessageType pb.MessageType
+	MessageType api.MessageType
 	Payload     []byte
 }
 
@@ -22,7 +22,7 @@ func (pss *PeerShareServer) ReadPacket(conn net.Conn) (*PacketBody, error) {
 	if n == 0 {
 		return nil, io.EOF
 	}
-	messageType := pb.MessageType(buf[0])
+	messageType := api.MessageType(buf[0])
 	payload := buf[1:n]
 	return &PacketBody{
 		MessageType: messageType,
@@ -43,8 +43,8 @@ func (pss *PeerShareServer) SendResponsePacket(conn net.Conn, packet *PacketBody
 	return nil
 }
 
-func (pss *PeerShareServer) SendResponse(conn net.Conn, msgType pb.MessageType, msg proto.Message) error {
-	respBytes, err := proto.Marshal(msg)
+func (pss *PeerShareServer) SendResponse(conn net.Conn, msgType api.MessageType, msg any) error {
+	respBytes, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}

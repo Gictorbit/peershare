@@ -1,15 +1,14 @@
 package client
 
 import (
-	pb "github.com/gictorbit/peershare/api/gen/proto"
+	"encoding/json"
+	"github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/utils"
-	"google.golang.org/protobuf/proto"
 	"net"
 )
 
 type PacketBody struct {
-	MessageType pb.MessageType
-	StatusCode  pb.StatusCode
+	MessageType api.MessageType
 	Payload     []byte
 }
 
@@ -20,9 +19,8 @@ func (pc *PeerClient) ReadPacket(conn net.Conn) (*PacketBody, error) {
 		return nil, err
 	}
 	return &PacketBody{
-		MessageType: pb.MessageType(buf[0]),
-		StatusCode:  pb.StatusCode(buf[1]),
-		Payload:     buf[2:n],
+		MessageType: api.MessageType(buf[0]),
+		Payload:     buf[1:n],
 	}, nil
 }
 
@@ -39,8 +37,8 @@ func (pc *PeerClient) SendRequestPacket(packet *PacketBody) error {
 	return nil
 }
 
-func (pc *PeerClient) SendRequest(msgType pb.MessageType, msg proto.Message) error {
-	respBytes, err := proto.Marshal(msg)
+func (pc *PeerClient) SendRequest(msgType api.MessageType, msg any) error {
+	respBytes, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}

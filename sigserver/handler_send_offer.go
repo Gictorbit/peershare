@@ -3,19 +3,19 @@ package sigserver
 import (
 	"crypto/rand"
 	"encoding/base64"
-	pb "github.com/gictorbit/peershare/api/gen/proto"
+	"github.com/gictorbit/peershare/api"
 	"go.uber.org/zap"
 	"net"
 )
 
-func (pss *PeerShareServer) SendOfferHandler(req *pb.SendOfferRequest, conn net.Conn) error {
+func (pss *PeerShareServer) SendOfferHandler(req *api.SendOfferRequest, conn net.Conn) error {
 	code, err := pss.GenerateCode()
 	if err != nil {
 		pss.logger.Error("code generator failed", zap.Error(err))
 		return pss.SendResponse(conn,
-			pb.MessageType_MESSAGE_TYPE_SEND_OFFER_RESPONSE,
-			&pb.SendOfferResponse{
-				StatusCode: pb.StatusCode_RESPONSE_CODE_ERROR,
+			api.MessagetypeMessageTypeSendOfferResponse,
+			&api.SendOfferResponse{
+				StatusCode: api.StatuscodeResponseCodeError,
 			})
 	}
 	pss.mu.Lock()
@@ -25,10 +25,10 @@ func (pss *PeerShareServer) SendOfferHandler(req *pb.SendOfferRequest, conn net.
 		Conn: conn,
 	}
 	return pss.SendResponse(conn,
-		pb.MessageType_MESSAGE_TYPE_SEND_OFFER_RESPONSE,
-		&pb.SendOfferResponse{
+		api.MessagetypeMessageTypeSendOfferResponse,
+		&api.SendOfferResponse{
 			Code:       code,
-			StatusCode: pb.StatusCode_RESPONSE_CODE_OK,
+			StatusCode: api.StatuscodeResponseCodeOk,
 		})
 }
 

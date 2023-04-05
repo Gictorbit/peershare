@@ -1,11 +1,12 @@
 package sigserver
 
 import (
+	"encoding/json"
 	"errors"
-	pb "github.com/gictorbit/peershare/api/gen/proto"
+	api "github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/utils"
+	"github.com/pion/webrtc/v3"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
 	"io"
 	"net"
 	"sync"
@@ -24,14 +25,14 @@ type PeerShareServer struct {
 }
 
 type PeerOffer struct {
-	Sdp  *pb.SDP
+	Sdp  webrtc.SessionDescription
 	Conn net.Conn
 }
 
 type PeerShareService interface {
-	GetOfferHandler(req *pb.GetOfferRequest, conn net.Conn) error
-	SendAnswerHandler(req *pb.SendAnswerRequest, conn net.Conn) error
-	SendOfferHandler(req *pb.SendOfferRequest, conn net.Conn) error
+	GetOfferHandler(req *api.GetOfferRequest, conn net.Conn) error
+	SendAnswerHandler(req *api.SendAnswerRequest, conn net.Conn) error
+	SendOfferHandler(req *api.SendOfferRequest, conn net.Conn) error
 }
 
 var (
@@ -95,9 +96,9 @@ func (pss *PeerShareServer) HandleConnection(conn net.Conn) {
 			return
 		}
 		switch packet.MessageType {
-		case pb.MessageType_MESSAGE_TYPE_SEND_OFFER_REQUEST:
-			req := &pb.SendOfferRequest{}
-			if e := proto.Unmarshal(packet.Payload, req); e != nil {
+		case api.MessagetypeMessageTypeSendOfferRequest:
+			req := &api.SendOfferRequest{}
+			if e := json.Unmarshal(packet.Payload, req); e != nil {
 				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
 				continue
 			}
@@ -105,9 +106,9 @@ func (pss *PeerShareServer) HandleConnection(conn net.Conn) {
 				pss.logger.Error("handle upload file failed", zap.Error(err))
 				continue
 			}
-		case pb.MessageType_MESSAGE_TYPE_GET_OFFER_REQUEST:
-			req := &pb.GetOfferRequest{}
-			if e := proto.Unmarshal(packet.Payload, req); e != nil {
+		case api.MessagetypeMessageTypeGetOfferRequest:
+			req := &api.GetOfferRequest{}
+			if e := json.Unmarshal(packet.Payload, req); e != nil {
 				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
 				continue
 			}
@@ -115,9 +116,9 @@ func (pss *PeerShareServer) HandleConnection(conn net.Conn) {
 				pss.logger.Error("handle upload file failed", zap.Error(err))
 				continue
 			}
-		case pb.MessageType_MESSAGE_TYPE_SEND_ANSWER_REQUEST:
-			req := &pb.SendAnswerRequest{}
-			if e := proto.Unmarshal(packet.Payload, req); e != nil {
+		case api.MessagetypeMessageTypeSendAnswerRequest:
+			req := &api.SendAnswerRequest{}
+			if e := json.Unmarshal(packet.Payload, req); e != nil {
 				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
 				continue
 			}

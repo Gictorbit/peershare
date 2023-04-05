@@ -2,7 +2,7 @@ package client
 
 import (
 	"fmt"
-	pb "github.com/gictorbit/peershare/api/gen/proto"
+	"github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
 	"log"
@@ -80,31 +80,23 @@ func (pc *PeerClient) SendFile(filePath string) {
 	if err = peerConnection.SetLocalDescription(offer); err != nil {
 		panic(err)
 	}
-	err = pc.SendRequest(pb.MessageType_MESSAGE_TYPE_SEND_OFFER_REQUEST, &pb.SendOfferRequest{
-		Sdp: &pb.SDP{
-			Sdp:  offer.SDP,
-			Type: uint32(offer.Type),
-		},
-	})
+	err = pc.SendRequest(api.MessagetypeMessageTypeSendOfferRequest, &api.SendOfferRequest{Sdp: offer})
 	if err != nil {
 		log.Fatal(err)
 	}
-	resp, err := utils.ReadMessageFromConn(pc.conn, &pb.SendOfferResponse{})
-	if err != nil || resp.Message.StatusCode != pb.StatusCode_RESPONSE_CODE_OK {
+	resp, err := utils.ReadMessageFromConn(pc.conn, &api.SendOfferResponse{})
+	if err != nil || resp.Message.StatusCode != api.StatuscodeResponseCodeOk {
 		log.Fatalf("response code not ok %v", err)
 		return
 	}
 	fmt.Println("share code: ", resp.Message.Code)
 
-	answer, err := utils.ReadMessageFromConn(pc.conn, &pb.SendAnswerRequest{})
+	answer, err := utils.ReadMessageFromConn(pc.conn, &api.SendAnswerRequest{})
 	if err != nil {
 		log.Fatalf("send answer error %v", err)
 		return
 	}
-	if sdpErr := peerConnection.SetRemoteDescription(webrtc.SessionDescription{
-		SDP:  answer.Message.Sdp.Sdp,
-		Type: webrtc.SDPType(answer.Message.Sdp.Type),
-	}); sdpErr != nil {
+	if sdpErr := peerConnection.SetRemoteDescription(answer.Message.Sdp); sdpErr != nil {
 		panic(sdpErr)
 	}
 	log.Println("got answer")
