@@ -1,15 +1,16 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gictorbit/peershare/api"
-	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
 	"log"
 	"time"
 )
 
-func (pc *PeerClient) SendFile(filePath string) {
+func (pc *PeerClient) SendFile(filePath string) error {
+	defer pc.conn.Close()
 	config := webrtc.Configuration{
 		ICEServers: []webrtc.ICEServer{
 			{
@@ -68,38 +69,50 @@ func (pc *PeerClient) SendFile(filePath string) {
 	dataChannel.OnMessage(func(msg webrtc.DataChannelMessage) {
 		fmt.Printf("Message from DataChannel '%s': '%s'\n", dataChannel.Label(), string(msg.Data))
 	})
-
+	go func() {
+		for {
+			packet, err := pc.ReadPacket(pc.conn)
+			if err != nil {
+				log.Printf("error read packet: %v", err)
+				continue
+			}
+			switch packet.MessageType {
+			case api.MessageTypeSendOfferResponse:
+				resp := &api.SendOfferResponse{}
+				if e := json.Unmarshal(packet.Payload, resp); e != nil || resp.StatusCode != api.ResponseCodeOk {
+					log.Printf("unmarshal send offer response failed:%v\n", e)
+					continue
+				}
+				fmt.Println("share code: ", resp.Code)
+			case api.MessageTypeSendAnswerRequest:
+				resp := &api.SendAnswerRequest{}
+				if e := json.Unmarshal(packet.Payload, resp); e != nil {
+					log.Printf("unmarshal transfer answer request failed:%v\n", e)
+					continue
+				}
+				log.Println("got answer")
+				if sdpErr := peerConnection.SetRemoteDescription(resp.Sdp); sdpErr != nil {
+					log.Println("set answer to remote desc", sdpErr)
+					continue
+				}
+			default:
+				log.Println("not handled response")
+			}
+		}
+	}()
 	// Create an offer to send to the other process
 	offer, err := peerConnection.CreateOffer(nil)
 	if err != nil {
 		panic(err)
 	}
-
-	// Sets the LocalDescription, and starts our UDP listeners
-	// Note: this will start the gathering of ICE candidates
 	if err = peerConnection.SetLocalDescription(offer); err != nil {
 		panic(err)
 	}
 	err = pc.SendRequest(api.MessageTypeSendOfferRequest, &api.SendOfferRequest{Sdp: offer})
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
-	resp, err := utils.ReadMessageFromConn(pc.conn, &api.SendOfferResponse{})
-	if err != nil || resp.Message.StatusCode != api.ResponseCodeOk {
-		log.Fatalf("response code not ok %v", err)
-		return
-	}
-	fmt.Println("share code: ", resp.Message.Code)
-
-	answer, err := utils.ReadMessageFromConn(pc.conn, &api.SendAnswerRequest{})
-	if err != nil {
-		log.Fatalf("send answer error %v", err)
-		return
-	}
-	if sdpErr := peerConnection.SetRemoteDescription(answer.Message.Sdp); sdpErr != nil {
-		panic(sdpErr)
-	}
-	log.Println("got answer")
-	// Block forever
+	log.Println("sent offer to server")
 	select {}
 }

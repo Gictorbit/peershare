@@ -7,12 +7,14 @@ import (
 type MessageType int32
 
 const (
-	MessageTypeSendOfferRequest   MessageType = 1
-	MessageTypeSendOfferResponse  MessageType = 2
-	MessageTypeGetOfferRequest    MessageType = 3
-	MessageTypeGetOfferResponse   MessageType = 4
-	MessageTypeSendAnswerRequest  MessageType = 5
-	MessageTypeSendAnswerResponse MessageType = 6
+	MessageTypeSendOfferRequest         MessageType = 1
+	MessageTypeSendOfferResponse        MessageType = 2
+	MessageTypeGetOfferRequest          MessageType = 3
+	MessageTypeGetOfferResponse         MessageType = 4
+	MessageTypeSendAnswerRequest        MessageType = 5
+	MessageTypeSendAnswerResponse       MessageType = 6
+	MessageTypeSendIceCandidateRequest  MessageType = 7
+	MessageTypeSendIceCandidateResponse MessageType = 8
 )
 
 type StatusCode int32
@@ -48,4 +50,8 @@ type SendAnswerRequest struct {
 
 type SendAnswerResponse struct {
 	StatusCode StatusCode `json:"status_code,omitempty"`
+}
+
+type SendIceCandidate struct {
+	Candidate string `json:"candidate,omitempty"`
 }
