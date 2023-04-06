@@ -1,9 +1,9 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gictorbit/peershare/api"
-	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
 	"log"
 	"time"
@@ -67,45 +67,59 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 			fmt.Printf("Message from DataChannel '%s': '%s'\n", d.Label(), string(msg.Data))
 		})
 	})
-
+	go func() {
+		for {
+			packet, err := pc.ReadPacket(pc.conn)
+			if err != nil {
+				log.Printf("error read packet: %v", err)
+				continue
+			}
+			switch packet.MessageType {
+			case api.MessageTypeGetOfferResponse:
+				resp := &api.GetOfferResponse{}
+				if e := json.Unmarshal(packet.Payload, resp); e != nil || resp.StatusCode != api.ResponseCodeOk {
+					log.Printf("unmarshal get offer response failed:%v\n", e)
+					continue
+				}
+				if err := peerConnection.SetRemoteDescription(resp.Sdp); err != nil {
+					log.Println(err)
+					continue
+				}
+				log.Println("got offer")
+				answer, err := peerConnection.CreateAnswer(nil)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+				// Sets the LocalDescription, and starts our UDP listeners
+				err = peerConnection.SetLocalDescription(answer)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+				err = pc.SendRequest(api.MessageTypeSendAnswerRequest, &api.SendAnswerRequest{
+					Code: code,
+					Sdp:  answer,
+				})
+				if err != nil {
+					log.Fatal(err)
+					return
+				}
+			case api.MessageTypeSendAnswerResponse:
+				resp := &api.SendAnswerResponse{}
+				if e := json.Unmarshal(packet.Payload, resp); e != nil {
+					log.Printf("unmarshal send answer response failed:%v\n", e)
+					continue
+				}
+			default:
+				log.Println("not handled response")
+			}
+		}
+	}()
 	err = pc.SendRequest(api.MessageTypeGetOfferRequest, &api.GetOfferRequest{Code: code})
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	offerResp, err := utils.ReadMessageFromConn(pc.conn, &api.GetOfferResponse{})
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	if err := peerConnection.SetRemoteDescription(offerResp.Message.Sdp); err != nil {
-		log.Fatal(err)
-		return
-	}
-	log.Println("got offer")
-
-	answer, err := peerConnection.CreateAnswer(nil)
-	if err != nil {
-		panic(err)
-	}
-	// Sets the LocalDescription, and starts our UDP listeners
-	err = peerConnection.SetLocalDescription(answer)
-	if err != nil {
-		panic(err)
-	}
-	err = pc.SendRequest(api.MessageTypeSendAnswerRequest, &api.SendAnswerRequest{
-		Code: code,
-		Sdp:  answer,
-	})
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	resp, err := utils.ReadMessageFromConn(pc.conn, &api.SendAnswerResponse{})
-	if err != nil || resp.Message.StatusCode != api.ResponseCodeOk {
-		log.Fatalf("send answer error:%v", err)
-		return
-	}
-	log.Println("sent answer")
 	select {}
 }
