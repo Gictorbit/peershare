@@ -29,19 +29,17 @@ func (pc *PeerClient) SendFile(filePath string) error {
 	})
 	defer fileDataChannel.Close()
 	go func() {
-		go func() {
-			for {
-				packet, err := pc.ReadPacket(pc.conn)
-				if err != nil {
-					log.Printf("error read packet: %v", err)
-					continue
-				}
-				if e := pc.ParseResponses(packet); e != nil {
-					log.Println(err)
-					continue
-				}
+		for {
+			packet, err := pc.ReadPacket(pc.conn)
+			if err != nil {
+				log.Printf("error read packet: %v", err)
+				continue
 			}
-		}()
+			if e := pc.ParseResponses(packet); e != nil {
+				log.Println(err)
+				continue
+			}
+		}
 	}()
 	if e := pc.SendNewOffer(); e != nil {
 		return e
