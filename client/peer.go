@@ -4,29 +4,35 @@ import (
 	"fmt"
 	"github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/utils"
+	"github.com/pion/webrtc/v3"
 	"log"
 	"net"
+	"os"
 	"sync"
 )
 
 type PeerClient struct {
-	listenAddr string
-	conn       net.Conn
-	wg         sync.WaitGroup
-	sharedCode string
-	clientType api.ClientType
+	listenAddr        string
+	conn              net.Conn
+	wg                sync.WaitGroup
+	sharedCode        string
+	clientType        api.ClientType
+	candidatesMux     sync.Mutex
+	pendingCandidates []*webrtc.ICECandidate
+	peerConnection    *webrtc.PeerConnection
 }
 
 type PeerShareClient interface {
-	ReceiveFile(code, outPath string)
-	SendFile(filePath string)
+	ReceiveFile(code, outPath string) error
+	SendFile(filePath string) error
 }
 
 func NewPeerClient(listenAddr string, cliType api.ClientType) *PeerClient {
 	return &PeerClient{
-		listenAddr: listenAddr,
-		wg:         sync.WaitGroup{},
-		clientType: cliType,
+		listenAddr:        listenAddr,
+		wg:                sync.WaitGroup{},
+		clientType:        cliType,
+		pendingCandidates: make([]*webrtc.ICECandidate, 0),
 	}
 }
 
@@ -41,6 +47,12 @@ func (pc *PeerClient) Connect() error {
 
 func (pc *PeerClient) Stop() {
 	pc.wg.Wait()
-	pc.conn.Close()
+	if e := pc.conn.Close(); e != nil {
+		log.Printf("close connection failed:%v\n", e)
+	}
 	log.Println("stop client...")
+	if err := pc.peerConnection.Close(); err != nil {
+		fmt.Printf("cannot close peerConnection: %v\n", err)
+	}
+	os.Exit(0)
 }

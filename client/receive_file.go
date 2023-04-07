@@ -7,45 +7,18 @@ import (
 	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
 	"log"
-	"sync"
 	"time"
 )
 
-func (pc *PeerClient) ReceiveFile(code, outPath string) {
-	config := webrtc.Configuration{
-		ICEServers: []webrtc.ICEServer{
-			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
-			},
-		},
+func (pc *PeerClient) ReceiveFile(code, outPath string) error {
+	defer pc.Stop()
+	pc.sharedCode = code
+	if err := pc.InitPeerConnection(); err != nil {
+		return err
 	}
-
-	// Create a new RTCPeerConnection
-	peerConnection, err := webrtc.NewPeerConnection(config)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		if err := peerConnection.Close(); err != nil {
-			fmt.Printf("cannot close peerConnection: %v\n", err)
-		}
-	}()
-
-	// Set the handler for Peer connection state
-	// This will notify you when the peer has connected/disconnected
-	peerConnection.OnConnectionStateChange(func(s webrtc.PeerConnectionState) {
-		fmt.Printf("Peer Connection State has changed: %s\n", s.String())
-
-		if s == webrtc.PeerConnectionStateFailed {
-			// Wait until PeerConnection has had no network activity for 30 seconds or another failure. It may be reconnected using an ICE Restart.
-			// Use webrtc.PeerConnectionStateDisconnected if you are interested in detecting faster timeout.
-			// Note that the PeerConnection may come back from PeerConnectionStateDisconnected.
-			fmt.Println("Peer Connection has gone to failed exiting")
-		}
-	})
 
 	// Register data channel creation handling
-	peerConnection.OnDataChannel(func(d *webrtc.DataChannel) {
+	pc.peerConnection.OnDataChannel(func(d *webrtc.DataChannel) {
 		fmt.Printf("New DataChannel %s %d\n", d.Label(), d.ID())
 
 		// Register channel opening handling
@@ -69,25 +42,7 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 			fmt.Printf("Message from DataChannel '%s': '%s'\n", d.Label(), string(msg.Data))
 		})
 	})
-	var candidatesMux sync.Mutex
-	pendingCandidates := make([]*webrtc.ICECandidate, 0)
 
-	peerConnection.OnICECandidate(func(c *webrtc.ICECandidate) {
-		if c == nil {
-			return
-		}
-		candidatesMux.Lock()
-		defer candidatesMux.Unlock()
-
-		desc := peerConnection.RemoteDescription()
-		if desc == nil || len(pc.sharedCode) == 0 {
-			pendingCandidates = append(pendingCandidates, c)
-		} else {
-			if signalCandidateErr := pc.SignalIceCandidate(c, pc.clientType); signalCandidateErr != nil {
-				log.Println(signalCandidateErr)
-			}
-		}
-	})
 	go func() {
 		for {
 			packet, err := pc.ReadPacket(pc.conn)
@@ -102,18 +57,18 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 					log.Printf("unmarshal get offer response failed:%v\n", e)
 					continue
 				}
-				if err := peerConnection.SetRemoteDescription(resp.Sdp); err != nil {
+				if err := pc.peerConnection.SetRemoteDescription(resp.Sdp); err != nil {
 					log.Println(err)
 					continue
 				}
 				log.Println("got offer")
-				answer, err := peerConnection.CreateAnswer(nil)
+				answer, err := pc.peerConnection.CreateAnswer(nil)
 				if err != nil {
 					log.Println(err)
 					continue
 				}
 				// Sets the LocalDescription, and starts our UDP listeners
-				err = peerConnection.SetLocalDescription(answer)
+				err = pc.peerConnection.SetLocalDescription(answer)
 				if err != nil {
 					log.Println(err)
 					continue
@@ -126,13 +81,13 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 					log.Fatal(err)
 					return
 				}
-				candidatesMux.Lock()
-				for _, c := range pendingCandidates {
+				pc.candidatesMux.Lock()
+				for _, c := range pc.pendingCandidates {
 					if signalCandidateErr := pc.SignalIceCandidate(c, pc.clientType); signalCandidateErr != nil {
 						log.Println(signalCandidateErr)
 					}
 				}
-				candidatesMux.Unlock()
+				pc.candidatesMux.Unlock()
 			case api.MessageTypeSendAnswerResponse:
 				resp := &api.SendAnswerResponse{}
 				if e := json.Unmarshal(packet.Payload, resp); e != nil {
@@ -150,7 +105,7 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 					if err != nil {
 						log.Println("error decode candidate", err)
 					}
-					if addCandidErr := peerConnection.AddICECandidate(webrtc.ICECandidateInit{Candidate: candidate}); addCandidErr != nil {
+					if addCandidErr := pc.peerConnection.AddICECandidate(webrtc.ICECandidateInit{Candidate: candidate}); addCandidErr != nil {
 						log.Printf("add candidate failed:%v\n", addCandidErr)
 						continue
 					}
@@ -166,10 +121,10 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 			}
 		}
 	}()
-	err = pc.SendRequest(api.MessageTypeGetOfferRequest, &api.GetOfferRequest{Code: code})
+	err := pc.SendRequest(api.MessageTypeGetOfferRequest, &api.GetOfferRequest{Code: code})
 	if err != nil {
 		log.Fatal(err)
-		return
+		return err
 	}
 	select {}
 }

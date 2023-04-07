@@ -7,49 +7,20 @@ import (
 	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
 	"log"
-	"sync"
 	"time"
 )
 
 func (pc *PeerClient) SendFile(filePath string) error {
-	defer pc.conn.Close()
-	config := webrtc.Configuration{
-		ICEServers: []webrtc.ICEServer{
-			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
-			},
-		},
+	defer pc.Stop()
+	if err := pc.InitPeerConnection(); err != nil {
+		return err
 	}
-
-	// Create a new RTCPeerConnection
-	peerConnection, err := webrtc.NewPeerConnection(config)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		if cErr := peerConnection.Close(); cErr != nil {
-			fmt.Printf("cannot close peerConnection: %v\n", cErr)
-		}
-	}()
 
 	// Create a datachannel with label 'data'
-	dataChannel, err := peerConnection.CreateDataChannel("data", nil)
+	dataChannel, err := pc.peerConnection.CreateDataChannel("data", nil)
 	if err != nil {
 		panic(err)
 	}
-
-	// Set the handler for Peer connection state
-	// This will notify you when the peer has connected/disconnected
-	peerConnection.OnConnectionStateChange(func(s webrtc.PeerConnectionState) {
-		fmt.Printf("Peer Connection State has changed: %s\n", s.String())
-
-		if s == webrtc.PeerConnectionStateFailed {
-			// Wait until PeerConnection has had no network activity for 30 seconds or another failure. It may be reconnected using an ICE Restart.
-			// Use webrtc.PeerConnectionStateDisconnected if you are interested in detecting faster timeout.
-			// Note that the PeerConnection may come back from PeerConnectionStateDisconnected.
-			fmt.Println("Peer Connection has gone to failed exiting")
-		}
-	})
 
 	// Register channel opening handling
 	dataChannel.OnOpen(func() {
@@ -70,26 +41,6 @@ func (pc *PeerClient) SendFile(filePath string) error {
 	// Register text message handling
 	dataChannel.OnMessage(func(msg webrtc.DataChannelMessage) {
 		fmt.Printf("Message from DataChannel '%s': '%s'\n", dataChannel.Label(), string(msg.Data))
-	})
-
-	var candidatesMux sync.Mutex
-	pendingCandidates := make([]*webrtc.ICECandidate, 0)
-
-	peerConnection.OnICECandidate(func(c *webrtc.ICECandidate) {
-		if c == nil {
-			return
-		}
-		candidatesMux.Lock()
-		defer candidatesMux.Unlock()
-
-		desc := peerConnection.RemoteDescription()
-		if desc == nil || len(pc.sharedCode) == 0 {
-			pendingCandidates = append(pendingCandidates, c)
-		} else {
-			if signalCandidateErr := pc.SignalIceCandidate(c, pc.clientType); signalCandidateErr != nil {
-				log.Println(signalCandidateErr)
-			}
-		}
 	})
 
 	go func() {
@@ -115,18 +66,17 @@ func (pc *PeerClient) SendFile(filePath string) error {
 					continue
 				}
 				log.Println("got answer")
-				if sdpErr := peerConnection.SetRemoteDescription(resp.Sdp); sdpErr != nil {
+				if sdpErr := pc.peerConnection.SetRemoteDescription(resp.Sdp); sdpErr != nil {
 					log.Println("set answer to remote desc", sdpErr)
 					continue
 				}
-				candidatesMux.Lock()
-				defer candidatesMux.Unlock()
-
-				for _, c := range pendingCandidates {
+				pc.candidatesMux.Lock()
+				for _, c := range pc.pendingCandidates {
 					if signalCandidateErr := pc.SignalIceCandidate(c, pc.clientType); signalCandidateErr != nil {
 						log.Println(signalCandidateErr)
 					}
 				}
+				pc.candidatesMux.Unlock()
 			case api.MessageTypeTransferIceCandidate:
 				resp := &api.TransferCandidates{}
 				if e := json.Unmarshal(packet.Payload, resp); e != nil {
@@ -139,7 +89,7 @@ func (pc *PeerClient) SendFile(filePath string) error {
 					if err != nil {
 						log.Println("error decode candidate", err)
 					}
-					if addCandidErr := peerConnection.AddICECandidate(webrtc.ICECandidateInit{Candidate: candidate}); addCandidErr != nil {
+					if addCandidErr := pc.peerConnection.AddICECandidate(webrtc.ICECandidateInit{Candidate: candidate}); addCandidErr != nil {
 						log.Printf("add candidate failed:%v\n", addCandidErr)
 						continue
 					}
@@ -155,18 +105,8 @@ func (pc *PeerClient) SendFile(filePath string) error {
 			}
 		}
 	}()
-	// Create an offer to send to the other process
-	offer, err := peerConnection.CreateOffer(nil)
-	if err != nil {
-		panic(err)
-	}
-	if err = peerConnection.SetLocalDescription(offer); err != nil {
-		panic(err)
-	}
-	err = pc.SendRequest(api.MessageTypeSendOfferRequest, &api.SendOfferRequest{Sdp: offer})
-	if err != nil {
-		log.Fatal(err)
-		return err
+	if e := pc.SendNewOffer(); e != nil {
+		return e
 	}
 	log.Println("sent offer to server")
 	select {}
