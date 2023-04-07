@@ -62,24 +62,9 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) error {
 					continue
 				}
 				log.Println("got offer")
-				answer, err := pc.peerConnection.CreateAnswer(nil)
-				if err != nil {
-					log.Println(err)
+				if e := pc.SendAnswer(); e != nil {
+					log.Println("send answer failed", e)
 					continue
-				}
-				// Sets the LocalDescription, and starts our UDP listeners
-				err = pc.peerConnection.SetLocalDescription(answer)
-				if err != nil {
-					log.Println(err)
-					continue
-				}
-				err = pc.SendRequest(api.MessageTypeSendAnswerRequest, &api.SendAnswerRequest{
-					Code: code,
-					Sdp:  answer,
-				})
-				if err != nil {
-					log.Fatal(err)
-					return
 				}
 				pc.candidatesMux.Lock()
 				for _, c := range pc.pendingCandidates {

@@ -78,3 +78,19 @@ func (pc *PeerClient) SendNewOffer() error {
 	}
 	return nil
 }
+
+func (pc *PeerClient) SendAnswer() error {
+	answer, err := pc.peerConnection.CreateAnswer(nil)
+	if err != nil {
+		return err
+	}
+	// Sets the LocalDescription, and starts our UDP listeners
+	err = pc.peerConnection.SetLocalDescription(answer)
+	if err != nil {
+		return err
+	}
+	return pc.SendRequest(api.MessageTypeSendAnswerRequest, &api.SendAnswerRequest{
+		Code: pc.sharedCode,
+		Sdp:  answer,
+	})
+}
