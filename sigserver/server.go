@@ -13,10 +13,18 @@ import (
 )
 
 type Empty struct{}
+type SessionPeers struct {
+	Sender, Receiver *WebRTCPeer
+}
+type WebRTCPeer struct {
+	Sdp           webrtc.SessionDescription
+	IceCandidates []string
+	Conn          net.Conn
+}
 
 type PeerShareServer struct {
 	logger     *zap.Logger
-	sessions   map[string]*PeerOffer
+	sessions   map[string]*SessionPeers
 	mu         sync.Mutex
 	listenAddr string
 	ln         net.Listener
@@ -24,15 +32,11 @@ type PeerShareServer struct {
 	wg         sync.WaitGroup
 }
 
-type PeerOffer struct {
-	Sdp  webrtc.SessionDescription
-	Conn net.Conn
-}
-
 type PeerShareService interface {
 	GetOfferHandler(req *api.GetOfferRequest, conn net.Conn) error
 	SendAnswerHandler(req *api.SendAnswerRequest, conn net.Conn) error
 	SendOfferHandler(req *api.SendOfferRequest, conn net.Conn) error
+	SendCandidateHandler(req *api.SendIceCandidateRequest, conn net.Conn) error
 }
 
 var (
@@ -42,7 +46,7 @@ var (
 func NewPeerShareServer(listenAddr string, logger *zap.Logger) *PeerShareServer {
 	return &PeerShareServer{
 		logger:     logger,
-		sessions:   make(map[string]*PeerOffer),
+		sessions:   make(map[string]*SessionPeers),
 		listenAddr: listenAddr,
 		quitChan:   make(chan Empty),
 		wg:         sync.WaitGroup{},
@@ -99,31 +103,41 @@ func (pss *PeerShareServer) HandleConnection(conn net.Conn) {
 		case api.MessageTypeSendOfferRequest:
 			req := &api.SendOfferRequest{}
 			if e := json.Unmarshal(packet.Payload, req); e != nil {
-				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
+				pss.logger.Error("unmarshal send offer request failed", zap.Error(e))
 				continue
 			}
 			if e := pss.SendOfferHandler(req, conn); e != nil {
-				pss.logger.Error("handle upload file failed", zap.Error(err))
+				pss.logger.Error("handle send offer failed", zap.Error(e))
 				continue
 			}
 		case api.MessageTypeGetOfferRequest:
 			req := &api.GetOfferRequest{}
 			if e := json.Unmarshal(packet.Payload, req); e != nil {
-				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
+				pss.logger.Error("unmarshal get offer request failed", zap.Error(e))
 				continue
 			}
 			if e := pss.GetOfferHandler(req, conn); e != nil {
-				pss.logger.Error("handle upload file failed", zap.Error(err))
+				pss.logger.Error("handle get offer failed", zap.Error(e))
 				continue
 			}
 		case api.MessageTypeSendAnswerRequest:
 			req := &api.SendAnswerRequest{}
 			if e := json.Unmarshal(packet.Payload, req); e != nil {
-				pss.logger.Error("unmarshal upload request failed", zap.Error(err))
+				pss.logger.Error("unmarshal send answer request failed", zap.Error(e))
 				continue
 			}
 			if e := pss.SendAnswerHandler(req, conn); e != nil {
-				pss.logger.Error("handle upload file failed", zap.Error(err))
+				pss.logger.Error("handle send answer failed", zap.Error(e))
+				continue
+			}
+		case api.MessageTypeSendIceCandidateRequest:
+			req := &api.SendIceCandidateRequest{}
+			if e := json.Unmarshal(packet.Payload, req); e != nil {
+				pss.logger.Error("unmarshal ice candidate request failed", zap.Error(e))
+				continue
+			}
+			if e := pss.SendCandidateHandler(req, conn); e != nil {
+				pss.logger.Error("handle ice candidate failed", zap.Error(e))
 				continue
 			}
 		}

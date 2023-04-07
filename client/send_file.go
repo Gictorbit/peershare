@@ -6,6 +6,7 @@ import (
 	"github.com/gictorbit/peershare/api"
 	"github.com/pion/webrtc/v3"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -69,6 +70,31 @@ func (pc *PeerClient) SendFile(filePath string) error {
 	dataChannel.OnMessage(func(msg webrtc.DataChannelMessage) {
 		fmt.Printf("Message from DataChannel '%s': '%s'\n", dataChannel.Label(), string(msg.Data))
 	})
+
+	var candidatesMux sync.Mutex
+	pendingCandidates := make([]*webrtc.ICECandidate, 0)
+
+	peerConnection.OnICECandidate(func(c *webrtc.ICECandidate) {
+		if c == nil {
+			return
+		}
+		candidatesMux.Lock()
+		defer candidatesMux.Unlock()
+
+		desc := peerConnection.RemoteDescription()
+		if desc == nil || len(pc.sharedCode) == 0 {
+			pendingCandidates = append(pendingCandidates, c)
+		} else {
+			if err := pc.SendRequest(api.MessageTypeSendIceCandidateRequest, &api.SendIceCandidateRequest{
+				Candidate:  c.ToJSON().Candidate,
+				ClientType: api.SenderClient,
+				Code:       pc.sharedCode,
+			}); err != nil {
+				log.Println("send ice candidate error", err.Error())
+			}
+		}
+	})
+
 	go func() {
 		for {
 			packet, err := pc.ReadPacket(pc.conn)
@@ -84,6 +110,7 @@ func (pc *PeerClient) SendFile(filePath string) error {
 					continue
 				}
 				fmt.Println("share code: ", resp.Code)
+				pc.sharedCode = resp.Code
 			case api.MessageTypeSendAnswerRequest:
 				resp := &api.SendAnswerRequest{}
 				if e := json.Unmarshal(packet.Payload, resp); e != nil {
@@ -93,6 +120,36 @@ func (pc *PeerClient) SendFile(filePath string) error {
 				log.Println("got answer")
 				if sdpErr := peerConnection.SetRemoteDescription(resp.Sdp); sdpErr != nil {
 					log.Println("set answer to remote desc", sdpErr)
+					continue
+				}
+				candidatesMux.Lock()
+				defer candidatesMux.Unlock()
+
+				for _, c := range pendingCandidates {
+					if err := pc.SendRequest(api.MessageTypeSendIceCandidateRequest, &api.SendIceCandidateRequest{
+						Candidate:  c.ToJSON().Candidate,
+						ClientType: api.SenderClient,
+						Code:       pc.sharedCode,
+					}); err != nil {
+						log.Println("send ice candidate error", err.Error())
+					}
+				}
+			case api.MessageTypeTransferIceCandidate:
+				resp := &api.TransferCandidates{}
+				if e := json.Unmarshal(packet.Payload, resp); e != nil {
+					log.Printf("unmarshal transfer candidate failed:%v\n", e)
+					continue
+				}
+				for _, candidate := range resp.Candidates {
+					if addCandidErr := peerConnection.AddICECandidate(webrtc.ICECandidateInit{Candidate: candidate}); addCandidErr != nil {
+						log.Printf("add candidate failed:%v\n", addCandidErr)
+						continue
+					}
+				}
+			case api.MessageTypeSendIceCandidateResponse:
+				resp := &api.SendIceCandidateResponse{}
+				if e := json.Unmarshal(packet.Payload, resp); e != nil || resp.StatusCode != api.ResponseCodeOk {
+					log.Printf("unmarshal transfer candidate failed:%v\n", e)
 					continue
 				}
 			default:

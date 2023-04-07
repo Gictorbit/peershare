@@ -15,6 +15,8 @@ const (
 	MessageTypeSendAnswerResponse       MessageType = 6
 	MessageTypeSendIceCandidateRequest  MessageType = 7
 	MessageTypeSendIceCandidateResponse MessageType = 8
+	MessageTypeTransferIceCandidate     MessageType = 9
+	MessageTypeTransferAnswer           MessageType = 10
 )
 
 type StatusCode int32
@@ -23,6 +25,13 @@ const (
 	ResponseCodeNotFound StatusCode = 0
 	ResponseCodeOk       StatusCode = 1
 	ResponseCodeError    StatusCode = 2
+)
+
+type ClientType int32
+
+const (
+	SenderClient   ClientType = 0
+	ReceiverClient ClientType = 1
 )
 
 type SendOfferRequest struct {
@@ -52,6 +61,16 @@ type SendAnswerResponse struct {
 	StatusCode StatusCode `json:"status_code,omitempty"`
 }
 
-type SendIceCandidate struct {
-	Candidate string `json:"candidate,omitempty"`
+type SendIceCandidateRequest struct {
+	Code       string     `json:"code,omitempty"`
+	Candidate  string     `json:"candidate,omitempty"`
+	ClientType ClientType `json:"client_type,omitempty"`
+}
+
+type SendIceCandidateResponse struct {
+	StatusCode StatusCode `json:"status_code,omitempty"`
+}
+
+type TransferCandidates struct {
+	Candidates []string `json:"candidates,omitempty"`
 }

@@ -20,9 +20,11 @@ func (pss *PeerShareServer) SendOfferHandler(req *api.SendOfferRequest, conn net
 	}
 	pss.mu.Lock()
 	defer pss.mu.Unlock()
-	pss.sessions[code] = &PeerOffer{
-		Sdp:  req.Sdp,
-		Conn: conn,
+	pss.sessions[code] = &SessionPeers{
+		Sender: &WebRTCPeer{
+			Sdp:  req.Sdp,
+			Conn: conn,
+		},
 	}
 	return pss.SendResponse(conn,
 		api.MessageTypeSendOfferResponse,

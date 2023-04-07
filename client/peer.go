@@ -12,6 +12,7 @@ type PeerClient struct {
 	listenAddr string
 	conn       net.Conn
 	wg         sync.WaitGroup
+	sharedCode string
 }
 
 type PeerShareClient interface {

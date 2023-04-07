@@ -7,7 +7,7 @@ import (
 )
 
 func (pss *PeerShareServer) SendAnswerHandler(req *api.SendAnswerRequest, conn net.Conn) error {
-	peerSession, found := pss.sessions[req.Code]
+	peers, found := pss.sessions[req.Code]
 	if !found {
 		pss.logger.Error("code not found", zap.String("code", req.Code))
 		return pss.SendResponse(conn,
@@ -16,7 +16,8 @@ func (pss *PeerShareServer) SendAnswerHandler(req *api.SendAnswerRequest, conn n
 				StatusCode: api.ResponseCodeNotFound,
 			})
 	}
-	err := pss.SendResponse(peerSession.Conn,
+	peers.Receiver.Sdp = req.Sdp
+	err := pss.SendResponse(peers.Sender.Conn,
 		api.MessageTypeSendAnswerRequest, req)
 
 	if err != nil {

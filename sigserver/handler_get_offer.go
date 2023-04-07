@@ -7,7 +7,7 @@ import (
 )
 
 func (pss *PeerShareServer) GetOfferHandler(req *api.GetOfferRequest, conn net.Conn) error {
-	peerOffer, found := pss.sessions[req.Code]
+	peers, found := pss.sessions[req.Code]
 	if !found {
 		pss.logger.Error("code not found", zap.String("code", req.Code))
 		return pss.SendResponse(conn,
@@ -16,10 +16,13 @@ func (pss *PeerShareServer) GetOfferHandler(req *api.GetOfferRequest, conn net.C
 				StatusCode: api.ResponseCodeError,
 			})
 	}
+	peers.Receiver = &WebRTCPeer{
+		Conn: conn,
+	}
 	return pss.SendResponse(conn,
 		api.MessageTypeGetOfferResponse,
 		&api.GetOfferResponse{
-			Sdp:        peerOffer.Sdp,
+			Sdp:        peers.Sender.Sdp,
 			StatusCode: api.ResponseCodeOk,
 		})
 }

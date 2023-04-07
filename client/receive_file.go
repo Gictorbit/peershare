@@ -6,6 +6,7 @@ import (
 	"github.com/gictorbit/peershare/api"
 	"github.com/pion/webrtc/v3"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -67,6 +68,29 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 			fmt.Printf("Message from DataChannel '%s': '%s'\n", d.Label(), string(msg.Data))
 		})
 	})
+	var candidatesMux sync.Mutex
+	pendingCandidates := make([]*webrtc.ICECandidate, 0)
+
+	peerConnection.OnICECandidate(func(c *webrtc.ICECandidate) {
+		if c == nil {
+			return
+		}
+		candidatesMux.Lock()
+		defer candidatesMux.Unlock()
+
+		desc := peerConnection.RemoteDescription()
+		if desc == nil || len(pc.sharedCode) == 0 {
+			pendingCandidates = append(pendingCandidates, c)
+		} else {
+			if err := pc.SendRequest(api.MessageTypeSendIceCandidateRequest, &api.SendIceCandidateRequest{
+				Candidate:  c.ToJSON().Candidate,
+				ClientType: api.ReceiverClient,
+				Code:       pc.sharedCode,
+			}); err != nil {
+				log.Println("send ice candidate error", err.Error())
+			}
+		}
+	})
 	go func() {
 		for {
 			packet, err := pc.ReadPacket(pc.conn)
@@ -105,10 +129,39 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 					log.Fatal(err)
 					return
 				}
+				candidatesMux.Lock()
+				for _, c := range pendingCandidates {
+					if err := pc.SendRequest(api.MessageTypeSendIceCandidateRequest, &api.SendIceCandidateRequest{
+						Candidate:  c.ToJSON().Candidate,
+						ClientType: api.SenderClient,
+						Code:       pc.sharedCode,
+					}); err != nil {
+						log.Println("send ice candidate error", err.Error())
+					}
+				}
+				candidatesMux.Unlock()
 			case api.MessageTypeSendAnswerResponse:
 				resp := &api.SendAnswerResponse{}
 				if e := json.Unmarshal(packet.Payload, resp); e != nil {
 					log.Printf("unmarshal send answer response failed:%v\n", e)
+					continue
+				}
+			case api.MessageTypeTransferIceCandidate:
+				resp := &api.TransferCandidates{}
+				if e := json.Unmarshal(packet.Payload, resp); e != nil {
+					log.Printf("unmarshal transfer candidate failed:%v\n", e)
+					continue
+				}
+				for _, candidate := range resp.Candidates {
+					if addCandidErr := peerConnection.AddICECandidate(webrtc.ICECandidateInit{Candidate: candidate}); addCandidErr != nil {
+						log.Printf("add candidate failed:%v\n", addCandidErr)
+						continue
+					}
+				}
+			case api.MessageTypeSendIceCandidateResponse:
+				resp := &api.SendIceCandidateResponse{}
+				if e := json.Unmarshal(packet.Payload, resp); e != nil || resp.StatusCode != api.ResponseCodeOk {
+					log.Printf("unmarshal transfer candidate failed:%v\n", e)
 					continue
 				}
 			default:
