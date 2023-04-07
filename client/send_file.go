@@ -2,9 +2,11 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
+	"io"
 	"os"
 )
 
@@ -30,7 +32,7 @@ func (pc *PeerClient) SendFile(filePath string) error {
 	go func() {
 		for {
 			packet, err := pc.ReadPacket(pc.conn)
-			if err != nil {
+			if err != nil && !errors.Is(err, io.EOF) {
 				pc.logger.Error("error read packet", "error", err)
 				continue
 			}

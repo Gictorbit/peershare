@@ -105,10 +105,10 @@ func main() {
 							logger.Info("server address is ", "addr", serverAddr)
 							peerClient := client.NewPeerClient(serverAddr, api.SenderClient, logger)
 							if e := peerClient.Connect(); e != nil {
-								logger.Error(e)
+								return e
 							}
 							if e := peerClient.SendFile(SendFilePath); e != nil {
-								logger.Error(e)
+								return e
 							}
 							peerClient.Stop()
 							return nil
@@ -139,14 +139,19 @@ func main() {
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
 							logger := logcharm.New(os.Stderr)
 							logger.SetReportCaller(true)
+							if _, e := os.Stat(ReceiveOutPath); os.IsNotExist(e) {
+								if mkdirErr := os.MkdirAll(ReceiveOutPath, os.ModePerm); mkdirErr != nil {
+									return mkdirErr
+								}
+								logger.Info("output directory created", "path", ReceiveOutPath)
+							}
 							logger.Info("server address is ", "addr", serverAddr)
 							peerClient := client.NewPeerClient(serverAddr, api.ReceiverClient, logger)
 							if e := peerClient.Connect(); e != nil {
-								logger.Error(e)
 								return e
 							}
 							if e := peerClient.ReceiveFile(SharedCode, ReceiveOutPath); e != nil {
-								logger.Error(e)
+								return e
 							}
 							peerClient.Stop()
 							return nil
