@@ -1,7 +1,6 @@
 package client
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/utils"
@@ -50,59 +49,9 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) error {
 				log.Printf("error read packet: %v", err)
 				continue
 			}
-			switch packet.MessageType {
-			case api.MessageTypeGetOfferResponse:
-				resp := &api.GetOfferResponse{}
-				if e := json.Unmarshal(packet.Payload, resp); e != nil || resp.StatusCode != api.ResponseCodeOk {
-					log.Printf("unmarshal get offer response failed:%v\n", e)
-					continue
-				}
-				if err := pc.peerConnection.SetRemoteDescription(resp.Sdp); err != nil {
-					log.Println(err)
-					continue
-				}
-				log.Println("got offer")
-				if e := pc.SendAnswer(); e != nil {
-					log.Println("send answer failed", e)
-					continue
-				}
-				pc.candidatesMux.Lock()
-				for _, c := range pc.pendingCandidates {
-					if signalCandidateErr := pc.SignalIceCandidate(c, pc.clientType); signalCandidateErr != nil {
-						log.Println(signalCandidateErr)
-					}
-				}
-				pc.candidatesMux.Unlock()
-			case api.MessageTypeSendAnswerResponse:
-				resp := &api.SendAnswerResponse{}
-				if e := json.Unmarshal(packet.Payload, resp); e != nil {
-					log.Printf("unmarshal send answer response failed:%v\n", e)
-					continue
-				}
-			case api.MessageTypeTransferIceCandidate:
-				resp := &api.TransferCandidates{}
-				if e := json.Unmarshal(packet.Payload, resp); e != nil {
-					log.Printf("unmarshal transfer candidate failed:%v\n", e)
-					continue
-				}
-				for _, c := range resp.Candidates {
-					candidate, err := utils.Decode(c)
-					if err != nil {
-						log.Println("error decode candidate", err)
-					}
-					if addCandidErr := pc.peerConnection.AddICECandidate(webrtc.ICECandidateInit{Candidate: candidate}); addCandidErr != nil {
-						log.Printf("add candidate failed:%v\n", addCandidErr)
-						continue
-					}
-				}
-			case api.MessageTypeSendIceCandidateResponse:
-				resp := &api.SendIceCandidateResponse{}
-				if e := json.Unmarshal(packet.Payload, resp); e != nil || resp.StatusCode != api.ResponseCodeOk {
-					log.Printf("unmarshal transfer candidate failed:%v\n", e)
-					continue
-				}
-			default:
-				log.Println("not handled response")
+			if e := pc.ParseResponses(packet); e != nil {
+				log.Println(err)
+				continue
 			}
 		}
 	}()
