@@ -1,6 +1,7 @@
 package sigserver
 
 import (
+	"errors"
 	"github.com/gictorbit/peershare/api"
 	"go.uber.org/zap"
 	"net"
@@ -24,7 +25,7 @@ func (pss *PeerShareServer) SendCandidateHandler(req *api.SendIceCandidateReques
 			e := pss.SendResponse(peers.Receiver.Conn, api.MessageTypeTransferIceCandidate, &api.TransferCandidates{
 				Candidates: peers.Sender.IceCandidates,
 			})
-			if e != nil {
+			if e != nil && !errors.Is(e, net.ErrClosed) {
 				pss.logger.Error("transfer candidate error",
 					zap.Error(e),
 					zap.String("code", req.Code),
@@ -44,7 +45,7 @@ func (pss *PeerShareServer) SendCandidateHandler(req *api.SendIceCandidateReques
 			e := pss.SendResponse(peers.Sender.Conn, api.MessageTypeTransferIceCandidate, &api.TransferCandidates{
 				Candidates: peers.Receiver.IceCandidates,
 			})
-			if e != nil {
+			if e != nil && !errors.Is(e, net.ErrClosed) {
 				pss.logger.Error("transfer candidate error",
 					zap.Error(e),
 					zap.String("code", req.Code),

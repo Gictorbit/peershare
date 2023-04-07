@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
-	"io"
+	"net"
 	"os"
 )
 
@@ -26,14 +26,22 @@ func (pc *PeerClient) SendFile(filePath string) error {
 		if e := pc.SendFileToReceiver(fileDataChannel, filePath); e != nil {
 			pc.logger.Error("SendFile Error", "error", e)
 		}
-		pc.logger.Info("sent file")
 	})
 	defer fileDataChannel.Close()
+
+	fileDataChannel.OnMessage(func(msg webrtc.DataChannelMessage) {
+		if string(msg.Data) == "success" {
+			pc.logger.Info("sent file successfully")
+			pc.Stop()
+		}
+	})
 	go func() {
 		for {
 			packet, err := pc.ReadPacket(pc.conn)
-			if err != nil && !errors.Is(err, io.EOF) {
-				pc.logger.Error("error read packet", "error", err)
+			if err != nil {
+				if !errors.Is(err, net.ErrClosed) {
+					pc.logger.Error("error read packet", "error", err)
+				}
 				continue
 			}
 			if e := pc.ParseResponses(packet); e != nil {

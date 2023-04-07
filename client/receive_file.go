@@ -2,8 +2,10 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/gictorbit/peershare/api"
 	"github.com/pion/webrtc/v3"
+	"net"
 	"os"
 	"path/filepath"
 	"sync"
@@ -39,6 +41,9 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) error {
 						pc.logger.Error("error receive file", "error", err)
 					}
 					pc.logger.Info("file received successfully")
+					if e := d.SendText("success"); e != nil {
+						pc.logger.Error("send text failed", "error", e)
+					}
 				}
 			})
 		}
@@ -48,7 +53,9 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) error {
 		for {
 			packet, err := pc.ReadPacket(pc.conn)
 			if err != nil {
-				pc.logger.Error("error read packet", "error", err)
+				if !errors.Is(err, net.ErrClosed) {
+					pc.logger.Error("error read packet", "error", err)
+				}
 				continue
 			}
 			if e := pc.ParseResponses(packet); e != nil {
