@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	logcharm "github.com/charmbracelet/log"
 	"github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/client"
 	"github.com/gictorbit/peershare/sigserver"
@@ -24,7 +25,6 @@ var (
 )
 
 func main() {
-	// using the function
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
@@ -99,13 +99,17 @@ func main() {
 							},
 						},
 						Action: func(context *cli.Context) error {
+							logger := logcharm.New(os.Stderr)
+							logger.SetReportCaller(true)
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
-							log.Println("server address is ", serverAddr)
-							peerClient := client.NewPeerClient(serverAddr, api.SenderClient)
+							logger.Info("server address is ", "addr", serverAddr)
+							peerClient := client.NewPeerClient(serverAddr, api.SenderClient, logger)
 							if e := peerClient.Connect(); e != nil {
-								log.Fatal(e)
+								logger.Error(e)
 							}
-							peerClient.SendFile(SendFilePath)
+							if e := peerClient.SendFile(SendFilePath); e != nil {
+								logger.Error(e)
+							}
 							peerClient.Stop()
 							return nil
 						},
@@ -133,13 +137,17 @@ func main() {
 						},
 						Action: func(context *cli.Context) error {
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
-							log.Println("server address is ", serverAddr)
-							peerClient := client.NewPeerClient(serverAddr, api.ReceiverClient)
+							logger := logcharm.New(os.Stderr)
+							logger.SetReportCaller(true)
+							logger.Info("server address is ", "addr", serverAddr)
+							peerClient := client.NewPeerClient(serverAddr, api.ReceiverClient, logger)
 							if e := peerClient.Connect(); e != nil {
-								log.Fatal(e)
+								logger.Error(e)
 								return e
 							}
-							peerClient.ReceiveFile(SharedCode, ReceiveOutPath)
+							if e := peerClient.ReceiveFile(SharedCode, ReceiveOutPath); e != nil {
+								logger.Error(e)
+							}
 							peerClient.Stop()
 							return nil
 						},
@@ -149,6 +157,7 @@ func main() {
 		},
 	}
 	if e := app.Run(os.Args); e != nil {
-		log.Println("failed to run app", e)
+		logger := logcharm.New(os.Stderr)
+		logger.Error("failed to run app", "error", e)
 	}
 }

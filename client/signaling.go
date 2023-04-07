@@ -5,7 +5,6 @@ import (
 	"github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
-	"log"
 )
 
 func (pc *PeerClient) InitPeerConnection() error {
@@ -22,9 +21,9 @@ func (pc *PeerClient) InitPeerConnection() error {
 		return err
 	}
 	peerConnection.OnConnectionStateChange(func(s webrtc.PeerConnectionState) {
-		fmt.Printf("Peer Connection State has changed: %s\n", s.String())
+		pc.logger.Info("Peer Connection State has changed", "state", s.String())
 		if s == webrtc.PeerConnectionStateFailed {
-			fmt.Println("Peer Connection has gone to failed")
+			pc.logger.Warn("Peer Connection has gone to failed")
 			pc.Stop()
 		}
 	})
@@ -40,7 +39,7 @@ func (pc *PeerClient) InitPeerConnection() error {
 			pc.pendingCandidates = append(pc.pendingCandidates, c)
 		} else {
 			if signalCandidateErr := pc.SignalIceCandidate(c, pc.clientType); signalCandidateErr != nil {
-				log.Println(signalCandidateErr)
+				pc.logger.Error(signalCandidateErr)
 			}
 		}
 	})

@@ -6,7 +6,6 @@ import (
 	"github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
-	"log"
 )
 
 func (pc *PeerClient) ParseResponses(packet *PacketBody) error {
@@ -16,14 +15,14 @@ func (pc *PeerClient) ParseResponses(packet *PacketBody) error {
 		if e := json.Unmarshal(packet.Payload, resp); e != nil || resp.StatusCode != api.ResponseCodeOk {
 			return fmt.Errorf("unmarshal send offer response failed:%v\n", e)
 		}
-		fmt.Println("share code: ", resp.Code)
+		pc.PrintCode(resp.Code)
 		pc.sharedCode = resp.Code
 	case api.MessageTypeSendAnswerRequest:
 		resp := &api.SendAnswerRequest{}
 		if e := json.Unmarshal(packet.Payload, resp); e != nil {
 			return fmt.Errorf("unmarshal transfer answer request failed:%v\n", e)
 		}
-		log.Println("got answer")
+		pc.logger.Info("received answer")
 		if sdpErr := pc.peerConnection.SetRemoteDescription(resp.Sdp); sdpErr != nil {
 			return fmt.Errorf("set answer to peer failed:%v", sdpErr)
 		}
@@ -43,7 +42,7 @@ func (pc *PeerClient) ParseResponses(packet *PacketBody) error {
 		if err := pc.peerConnection.SetRemoteDescription(resp.Sdp); err != nil {
 			return fmt.Errorf("set remote sdp failed:%v", err)
 		}
-		log.Println("got offer")
+		pc.logger.Info("received offer")
 		if e := pc.SendAnswer(); e != nil {
 			return fmt.Errorf("send answer failed:%v", e)
 
