@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/utils"
 	"log"
 	"net"
@@ -13,6 +14,7 @@ type PeerClient struct {
 	conn       net.Conn
 	wg         sync.WaitGroup
 	sharedCode string
+	clientType api.ClientType
 }
 
 type PeerShareClient interface {
@@ -20,10 +22,11 @@ type PeerShareClient interface {
 	SendFile(filePath string)
 }
 
-func NewPeerClient(listenAddr string) *PeerClient {
+func NewPeerClient(listenAddr string, cliType api.ClientType) *PeerClient {
 	return &PeerClient{
 		listenAddr: listenAddr,
 		wg:         sync.WaitGroup{},
+		clientType: cliType,
 	}
 }
 

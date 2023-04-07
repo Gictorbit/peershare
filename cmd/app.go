@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gictorbit/peershare/api"
 	"github.com/gictorbit/peershare/client"
 	"github.com/gictorbit/peershare/sigserver"
 	"github.com/urfave/cli/v2"
@@ -100,7 +101,7 @@ func main() {
 						Action: func(context *cli.Context) error {
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
 							log.Println("server address is ", serverAddr)
-							peerClient := client.NewPeerClient(serverAddr)
+							peerClient := client.NewPeerClient(serverAddr, api.SenderClient)
 							if e := peerClient.Connect(); e != nil {
 								log.Fatal(e)
 							}
@@ -133,7 +134,7 @@ func main() {
 						Action: func(context *cli.Context) error {
 							serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
 							log.Println("server address is ", serverAddr)
-							peerClient := client.NewPeerClient(serverAddr)
+							peerClient := client.NewPeerClient(serverAddr, api.ReceiverClient)
 							if e := peerClient.Connect(); e != nil {
 								log.Fatal(e)
 								return e

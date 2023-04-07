@@ -83,12 +83,8 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 		if desc == nil || len(pc.sharedCode) == 0 {
 			pendingCandidates = append(pendingCandidates, c)
 		} else {
-			if err := pc.SendRequest(api.MessageTypeSendIceCandidateRequest, &api.SendIceCandidateRequest{
-				Candidate:  c.ToJSON().Candidate,
-				ClientType: api.ReceiverClient,
-				Code:       pc.sharedCode,
-			}); err != nil {
-				log.Println("send ice candidate error", err.Error())
+			if signalCandidateErr := pc.SignalIceCandidate(c, pc.clientType); signalCandidateErr != nil {
+				log.Println(signalCandidateErr)
 			}
 		}
 	})
@@ -132,12 +128,8 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 				}
 				candidatesMux.Lock()
 				for _, c := range pendingCandidates {
-					if err := pc.SendRequest(api.MessageTypeSendIceCandidateRequest, &api.SendIceCandidateRequest{
-						Candidate:  c.ToJSON().Candidate,
-						ClientType: api.SenderClient,
-						Code:       pc.sharedCode,
-					}); err != nil {
-						log.Println("send ice candidate error", err.Error())
+					if signalCandidateErr := pc.SignalIceCandidate(c, pc.clientType); signalCandidateErr != nil {
+						log.Println(signalCandidateErr)
 					}
 				}
 				candidatesMux.Unlock()
@@ -153,7 +145,11 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) {
 					log.Printf("unmarshal transfer candidate failed:%v\n", e)
 					continue
 				}
-				for _, candidate := range resp.Candidates {
+				for _, c := range resp.Candidates {
+					candidate, err := utils.Decode(c)
+					if err != nil {
+						log.Println("error decode candidate", err)
+					}
 					if addCandidErr := peerConnection.AddICECandidate(webrtc.ICECandidateInit{Candidate: candidate}); addCandidErr != nil {
 						log.Printf("add candidate failed:%v\n", addCandidErr)
 						continue
