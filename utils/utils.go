@@ -1,10 +1,16 @@
 package utils
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"errors"
+	"fmt"
 	api "github.com/gictorbit/peershare/api"
+	"io"
 	"net"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 const (
@@ -38,4 +44,28 @@ func ReadMessageFromConn[T any](conn net.Conn, message T) (*MessageBody[T], erro
 	}
 	packet.Message = message
 	return packet, nil
+}
+
+func FileInfo(fPath string) (*api.File, error) {
+	openedFile, err := os.Open(strings.TrimSpace(fPath)) // For read access.
+	if err != nil {
+		return nil, err
+	}
+	defer openedFile.Close()
+	fileExtension := filepath.Ext(fPath)
+	fileStat, err := os.Stat(fPath)
+	if err != nil {
+		return nil, err
+	}
+	hash := md5.New()
+	_, err = io.Copy(hash, openedFile)
+	if err != nil {
+		return nil, err
+	}
+	return &api.File{
+		Name:      filepath.Base(openedFile.Name()),
+		Size:      fileStat.Size(),
+		Extension: fileExtension,
+		Md5Sum:    fmt.Sprintf("%x", hash.Sum(nil)),
+	}, nil
 }

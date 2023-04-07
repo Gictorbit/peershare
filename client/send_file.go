@@ -1,12 +1,15 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
 	"log"
-	"time"
+	"os"
 )
+
+type Empty struct{}
 
 func (pc *PeerClient) SendFile(filePath string) error {
 	defer pc.Stop()
@@ -14,32 +17,17 @@ func (pc *PeerClient) SendFile(filePath string) error {
 		return err
 	}
 
-	// Create a datachannel with label 'data'
-	dataChannel, err := pc.peerConnection.CreateDataChannel("data", nil)
+	fileDataChannel, err := pc.peerConnection.CreateDataChannel("file", nil)
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	// Register channel opening handling
-	dataChannel.OnOpen(func() {
-		fmt.Printf("Data channel '%s'-'%d' open. Random messages will now be sent to any connected DataChannels every 5 seconds\n", dataChannel.Label(), dataChannel.ID())
-		for range time.NewTicker(5 * time.Second).C {
-			message, _ := utils.RandSeq(15)
-			fmt.Printf("Sending '%s'\n", message)
-
-			// Send the message as text
-			sendTextErr := dataChannel.SendText(message)
-			if sendTextErr != nil {
-				panic(sendTextErr)
-			}
+	fileDataChannel.OnOpen(func() {
+		if e := pc.SendFileToReceiver(fileDataChannel, filePath); e != nil {
+			log.Printf("SendFile Error:%v", e)
 		}
+		fmt.Println("sent file...")
 	})
-
-	// Register text message handling
-	dataChannel.OnMessage(func(msg webrtc.DataChannelMessage) {
-		fmt.Printf("Message from DataChannel '%s': '%s'\n", dataChannel.Label(), string(msg.Data))
-	})
-
+	defer fileDataChannel.Close()
 	go func() {
 		go func() {
 			for {
@@ -58,6 +46,29 @@ func (pc *PeerClient) SendFile(filePath string) error {
 	if e := pc.SendNewOffer(); e != nil {
 		return e
 	}
+
 	log.Println("sent offer to server")
 	select {}
+}
+
+func (pc *PeerClient) SendFileToReceiver(dataChannel *webrtc.DataChannel, filePath string) error {
+	fileInfo, err := utils.FileInfo(filePath)
+	if err != nil {
+		return err
+	}
+	bfileInfo, err := json.Marshal(fileInfo)
+	if err != nil {
+		return fmt.Errorf("marshal file info failed:%v", err)
+	}
+	if e := dataChannel.Send(bfileInfo); e != nil {
+		return fmt.Errorf("failed to send file info:%v", e)
+	}
+	file, err := os.ReadFile(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to read file:%v", err)
+	}
+	if e := dataChannel.Send(file); e != nil {
+		return fmt.Errorf("failed to send file:%v", e)
+	}
+	return nil
 }

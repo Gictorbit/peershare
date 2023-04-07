@@ -1,12 +1,14 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gictorbit/peershare/api"
-	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
 	"log"
-	"time"
+	"os"
+	"path/filepath"
+	"sync"
 )
 
 func (pc *PeerClient) ReceiveFile(code, outPath string) error {
@@ -18,28 +20,30 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) error {
 
 	// Register data channel creation handling
 	pc.peerConnection.OnDataChannel(func(d *webrtc.DataChannel) {
-		fmt.Printf("New DataChannel %s %d\n", d.Label(), d.ID())
-
-		// Register channel opening handling
-		d.OnOpen(func() {
-			fmt.Printf("Data channel '%s'-'%d' open. Random messages will now be sent to any connected DataChannels every 5 seconds\n", d.Label(), d.ID())
-
-			for range time.NewTicker(5 * time.Second).C {
-				message, _ := utils.RandSeq(15)
-				fmt.Printf("Sending '%s'\n", message)
-
-				// Send the message as text
-				sendTextErr := d.SendText(message)
-				if sendTextErr != nil {
-					panic(sendTextErr)
+		if d.Label() == "file" {
+			var (
+				fileInfo   *api.File
+				fInfoMutex sync.Mutex
+			)
+			d.OnMessage(func(msg webrtc.DataChannelMessage) {
+				fInfoMutex.Lock()
+				defer fInfoMutex.Unlock()
+				if fileInfo == nil {
+					fileInfo = &api.File{}
+					err := json.Unmarshal(msg.Data, &fileInfo)
+					if err != nil {
+						log.Fatal("error unmarshal file info")
+					}
+					fmt.Println("fileInfo is:", fileInfo)
+				} else {
+					fPath := filepath.Join(outPath, fileInfo.Name)
+					if err := os.WriteFile(fPath, msg.Data, 0644); err != nil {
+						log.Fatal("error receive file", err)
+					}
+					fmt.Println("file received")
 				}
-			}
-		})
-
-		// Register text message handling
-		d.OnMessage(func(msg webrtc.DataChannelMessage) {
-			fmt.Printf("Message from DataChannel '%s': '%s'\n", d.Label(), string(msg.Data))
-		})
+			})
+		}
 	})
 
 	go func() {

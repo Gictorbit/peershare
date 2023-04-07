@@ -20,6 +20,7 @@ type PeerClient struct {
 	candidatesMux     sync.Mutex
 	pendingCandidates []*webrtc.ICECandidate
 	peerConnection    *webrtc.PeerConnection
+	doneChan          chan Empty
 }
 
 type PeerShareClient interface {
@@ -33,6 +34,7 @@ func NewPeerClient(listenAddr string, cliType api.ClientType) *PeerClient {
 		wg:                sync.WaitGroup{},
 		clientType:        cliType,
 		pendingCandidates: make([]*webrtc.ICECandidate, 0),
+		doneChan:          make(chan Empty),
 	}
 }
 

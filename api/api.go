@@ -74,3 +74,10 @@ type SendIceCandidateResponse struct {
 type TransferCandidates struct {
 	Candidates []string `json:"candidates,omitempty"`
 }
+
+type File struct {
+	Name      string `json:"name,omitempty"`
+	Size      int64  `json:"size,omitempty"`
+	Extension string `json:"extension,omitempty"`
+	Md5Sum    string `json:"md5sum,omitempty"`
+}
