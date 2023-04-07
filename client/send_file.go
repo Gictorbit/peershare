@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gictorbit/peershare/api"
+	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
 	"log"
 	"sync"
@@ -55,7 +56,7 @@ func (pc *PeerClient) SendFile(filePath string) error {
 		fmt.Printf("Data channel '%s'-'%d' open. Random messages will now be sent to any connected DataChannels every 5 seconds\n", dataChannel.Label(), dataChannel.ID())
 
 		for range time.NewTicker(5 * time.Second).C {
-			message := RandSeq(15)
+			message, _ := utils.RandSeq(15)
 			fmt.Printf("Sending '%s'\n", message)
 
 			// Send the message as text

@@ -4,12 +4,13 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"github.com/gictorbit/peershare/api"
+	"github.com/gictorbit/peershare/utils"
 	"go.uber.org/zap"
 	"net"
 )
 
 func (pss *PeerShareServer) SendOfferHandler(req *api.SendOfferRequest, conn net.Conn) error {
-	code, err := pss.GenerateCode()
+	code, err := utils.RandSeq(15)
 	if err != nil {
 		pss.logger.Error("code generator failed", zap.Error(err))
 		return pss.SendResponse(conn,
