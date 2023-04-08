@@ -8,6 +8,7 @@ import (
 	"github.com/pion/webrtc/v3"
 	"net"
 	"os"
+	"strings"
 )
 
 type Empty struct{}
@@ -33,6 +34,8 @@ func (pc *PeerClient) SendFile(filePath string) error {
 		if string(msg.Data) == "success" {
 			pc.logger.Info("sent file successfully")
 			pc.Stop()
+		} else {
+			pc.logger.Error("file doesn't sent completely, incorrect md5sum")
 		}
 	})
 	go func() {
@@ -44,7 +47,8 @@ func (pc *PeerClient) SendFile(filePath string) error {
 				}
 				continue
 			}
-			if e := pc.ParseResponses(packet); e != nil {
+			//TODO fix invalid character error
+			if e := pc.ParseResponses(packet); e != nil && !strings.Contains(e.Error(), "invalid character") {
 				pc.logger.Error("parse response error", "error", e)
 				continue
 			}

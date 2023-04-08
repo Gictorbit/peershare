@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gictorbit/peershare/api"
+	"github.com/gictorbit/peershare/utils"
 	"github.com/pion/webrtc/v3"
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -33,6 +35,7 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) error {
 					err := json.Unmarshal(msg.Data, &fileInfo)
 					if err != nil {
 						pc.logger.Error("error unmarshal file info", "error", err)
+						return
 					}
 					pc.PrintFileInfo(fileInfo)
 				} else {
@@ -41,8 +44,21 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) error {
 						pc.logger.Error("error receive file", "error", err)
 					}
 					pc.logger.Info("file received successfully")
-					if e := d.SendText("success"); e != nil {
-						pc.logger.Error("send text failed", "error", e)
+					info, err := utils.FileInfo(fPath)
+					if err != nil {
+						pc.logger.Error("get file info failed", "error", err)
+						return
+					}
+					if info.Md5Sum == fileInfo.Md5Sum {
+						pc.logger.Info("md5sum verified successfully")
+						if e := d.SendText("success"); e != nil {
+							pc.logger.Error("send text failed", "error", e)
+						}
+					} else {
+						pc.logger.Error("md5sum not correct")
+						if e := d.SendText("failed"); e != nil {
+							pc.logger.Error("send text failed", "error", e, "md5sum", info.Md5Sum)
+						}
 					}
 				}
 			})
@@ -58,7 +74,8 @@ func (pc *PeerClient) ReceiveFile(code, outPath string) error {
 				}
 				continue
 			}
-			if e := pc.ParseResponses(packet); e != nil {
+			//TODO fix invalid character error
+			if e := pc.ParseResponses(packet); e != nil && !strings.Contains(e.Error(), "invalid character") {
 				pc.logger.Error("parse response error", "error", e)
 				continue
 			}
