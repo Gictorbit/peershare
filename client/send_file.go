@@ -36,6 +36,7 @@ func (pc *PeerClient) SendFile(filePath string) error {
 			pc.Stop()
 		} else {
 			pc.logger.Error("file doesn't sent completely, incorrect md5sum")
+			pc.Stop()
 		}
 	})
 	go func() {

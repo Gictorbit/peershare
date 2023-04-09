@@ -18,7 +18,7 @@ import (
 var (
 	HostAddress    string
 	ServerPort     uint
-	LogRequest     bool
+	LogStacktrace  bool
 	SendFilePath   string
 	ReceiveOutPath string
 	SharedCode     string
@@ -57,18 +57,20 @@ func main() {
 				Usage: "run file sharing signaling server",
 				Flags: []cli.Flag{
 					&cli.BoolFlag{
-						Name:        "log-request",
-						Usage:       "log incoming requests",
-						Aliases:     []string{"lgr"},
+						Name:        "stacktrace",
+						Usage:       "enable/disable stacktrace",
+						Aliases:     []string{"str"},
 						Value:       false,
 						DefaultText: "false",
-						EnvVars:     []string{"LOG_REQUEST"},
-						Destination: &LogRequest,
+						EnvVars:     []string{"LOG_STACK_TRACE"},
+						Destination: &LogStacktrace,
 					},
 				},
 				Action: func(cliCtx *cli.Context) error {
 					serverAddr := net.JoinHostPort(HostAddress, fmt.Sprintf("%d", ServerPort))
-					logger, err := zap.NewProduction()
+					logCfg := zap.NewProductionConfig()
+					logCfg.DisableStacktrace = !LogStacktrace
+					logger, err := logCfg.Build()
 					if err != nil {
 						log.Fatalf("create new logger failed:%v\n", err)
 					}
